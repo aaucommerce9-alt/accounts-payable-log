@@ -1,0 +1,112 @@
+# ============================================================
+#  AMAZON BOOKKEEPING TOOL — USER CONFIGURATION
+#  Edit values here; never touch the source code.
+# ============================================================
+
+# ----------------------------------------------------------
+# SP-API Credentials
+# Generate these in Seller Central → Apps & Services →
+# Develop Apps → Add new app (or your existing Developer app)
+# Required data role: Finance & Accounting
+# ----------------------------------------------------------
+sp_api:
+  lwa_app_id:       "YOUR_LWA_CLIENT_ID"        # Client ID from Seller Central
+  lwa_client_secret: "YOUR_LWA_CLIENT_SECRET"   # Client Secret from Seller Central
+  refresh_token:    "YOUR_REFRESH_TOKEN"         # Refresh Token from authorization flow
+  marketplace_id:   "ATVPDKIKX0DER"             # Amazon US marketplace ID (leave as-is)
+  region:           "us-east-1"                  # AWS region for SP-API (leave as-is)
+
+# ----------------------------------------------------------
+# File Paths
+# ----------------------------------------------------------
+paths:
+  workbook:        "bookkeeping.xlsx"            # Path to your Excel workbook
+  cost_master_tab: "Cost Master"                 # Tab name inside the workbook for COGS lookup
+  sync_state:      "data/last_sync.json"         # Persisted sync marker (auto-created)
+  sync_log:        "data/sync.log"               # Running log of syncs and issues
+
+# ----------------------------------------------------------
+# Excel Tab & Column Configuration
+# Match these to your actual workbook exactly.
+# ----------------------------------------------------------
+excel:
+  transactions_tab:    "Transactions"
+  monthly_summary_tab: "Monthly Summary"
+  # Column order for the Transactions tab (1-indexed)
+  # Adjust if your workbook columns differ.
+  columns:
+    date:              1
+    order_id:          2
+    settlement_id:     3
+    type:              4
+    sku:               5
+    asin:              6
+    title:             7
+    qty:               8
+    gross_sales:       9
+    promotions:        10
+    referral_fee:      11
+    fba_fee:           12
+    other_fees:        13
+    refunds:           14
+    sales_tax:         15
+    net_proceeds:      16
+    marketplace:       17
+    cogs:              18
+    profit_share:      19
+    net_profit:        20
+    margin_pct:        21
+    roi_pct:           22
+
+# ----------------------------------------------------------
+# Cost Master Sheet Format
+# The sheet must have at least these columns (header names):
+#   SKU | COGS | Supplier
+# ----------------------------------------------------------
+cost_master:
+  sku_col:      "SKU"
+  cogs_col:     "COGS"
+  supplier_col: "Supplier"
+
+# ----------------------------------------------------------
+# Profit-Share Rules
+# ----------------------------------------------------------
+profit_share:
+  # Only these suppliers attract a profit-share accrual
+  covered_suppliers:
+    - "HDS Trading Corp"
+    - "Allary"
+    - "Kiss Nails"
+    - "Trisonic"
+    - "Brooklyn Lollipop"
+
+  # Rate schedule: list of {effective_date, rate} in ascending date order
+  # rate is a decimal (0.12 = 12%)
+  rate_schedule:
+    - effective_date: "2000-01-01"   # inception / default
+      rate: 0.12
+    - effective_date: "2027-04-20"   # step-down date
+      rate: 0.10
+
+  # What figure the % is applied to:
+  # Options: "gross_profit"  (gross_sales - cogs)
+  #          "net_sales"     (gross_sales - promotions - refunds)
+  #          "net_profit"    (net_proceeds - cogs)
+  # *** CONFIRM WITH OWNER before first live run ***
+  base: "net_profit"
+
+# ----------------------------------------------------------
+# Reconciliation
+# ----------------------------------------------------------
+reconciliation:
+  # Maximum allowed discrepancy (in USD) before flagging
+  tolerance_usd: 0.01
+
+# ----------------------------------------------------------
+# Sync Behaviour
+# ----------------------------------------------------------
+sync:
+  # How many days back to look on a fresh / reset sync
+  initial_lookback_days: 90
+  # SP-API request throttle: seconds between retries on 429
+  retry_backoff_seconds: [2, 4, 8, 16, 32]
