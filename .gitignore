@@ -221,3 +221,7 @@ __marimo__/
 service_account.json
 credentials.json
 token.json
+
+# SSH keys
+swiftcart_vps_key
+swiftcart_vps_key.pub
