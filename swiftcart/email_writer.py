@@ -1,7 +1,8 @@
 """Use Anthropic API to personalize the outreach email per brand."""
 import logging
-from anthropic import Anthropic
+from anthropic import Anthropic, APIStatusError
 from . import config
+from . import alerts
 from .models import BrandRecord
 
 log = logging.getLogger(__name__)
@@ -58,8 +59,14 @@ def personalize_email(brand: BrandRecord, followup_num: int = 0) -> tuple[str, s
             messages=[{"role": "user", "content": user_content}],
         )
         body = message.content[0].text.strip()
+    except APIStatusError as exc:
+        # Credit exhausted or quota error — alert once and fall back
+        log.warning("Anthropic API error for %s: %s — using template", brand.name, exc)
+        alerts.alert_anthropic_failed(brand.name, exc)
+        body = raw_body
     except Exception as exc:
         log.warning("Anthropic API failed for %s: %s — using template", brand.name, exc)
+        alerts.alert_template_fallback(brand.name, str(exc))
         body = raw_body
 
     subject = config.EMAIL_SUBJECT

@@ -5,6 +5,7 @@ from typing import Optional
 import keepa
 
 from . import config
+from . import alerts
 from .models import AsinRecord
 
 log = logging.getLogger(__name__)
@@ -38,6 +39,8 @@ def discover_asins(limit: int = 500) -> list[dict]:
         return result or []
     except Exception as exc:
         log.error("Keepa Product Finder failed: %s", exc)
+        if _is_token_exhaustion(exc):
+            alerts.alert_keepa_exhausted(exc)
         return []
 
 
@@ -56,6 +59,9 @@ def fetch_asin_details(asins: list[str]) -> list[AsinRecord]:
             products = api.query(chunk, stats=90, offers=20, history=True)
         except Exception as exc:
             log.warning("Keepa query failed for chunk %s: %s", chunk, exc)
+            if _is_token_exhaustion(exc):
+                alerts.alert_keepa_exhausted(exc)
+                break   # no point continuing if tokens are gone
             time.sleep(config.KEEPA_TOKEN_PAUSE_SECONDS)
             continue
 
@@ -139,3 +145,9 @@ def _price_90d_ago(p: dict) -> float:
         return valid[0] if valid else 0.0
     except Exception:
         return 0.0
+
+
+def _is_token_exhaustion(exc: Exception) -> bool:
+    """Keepa raises errors with messages like 'not enough tokens' or status 429."""
+    msg = str(exc).lower()
+    return any(phrase in msg for phrase in ["token", "429", "rate limit", "quota", "exceeded"])

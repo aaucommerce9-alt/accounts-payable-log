@@ -16,6 +16,7 @@ from datetime import date, timedelta
 from typing import Optional
 
 from . import config
+from . import alerts
 from .contact_finder import find_contact_email
 from .dnc import load_dnc, screen
 from .email_writer import personalize_email
@@ -29,6 +30,15 @@ log = logging.getLogger(__name__)
 
 
 def run_daily() -> None:
+    try:
+        _run_daily_inner()
+    except Exception as exc:
+        log.exception("Daily run crashed")
+        alerts.alert_run_failed(exc)
+        raise
+
+
+def _run_daily_inner() -> None:
     log.info("=== SwiftCart daily run started ===")
     today = date.today()
 
