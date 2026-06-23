@@ -29,10 +29,20 @@ def _get_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                config.GMAIL_CREDENTIALS_FILE, config.GMAIL_SCOPES
+            from google_auth_oauthlib.flow import Flow
+            flow = Flow.from_client_secrets_file(
+                config.GMAIL_CREDENTIALS_FILE,
+                scopes=config.GMAIL_SCOPES,
+                redirect_uri="urn:ietf:wg:oauth:2.0:oob",
             )
-            creds = flow.run_local_server(port=0)
+            auth_url, _ = flow.authorization_url(prompt="consent")
+            print("\n" + "=" * 60)
+            print("Open this URL in your browser (any device):")
+            print(auth_url)
+            print("=" * 60)
+            code = input("\nPaste the authorization code here: ").strip()
+            flow.fetch_token(code=code)
+            creds = flow.credentials
         with open(config.GMAIL_TOKEN_FILE, "w") as token:
             token.write(creds.to_json())
 
