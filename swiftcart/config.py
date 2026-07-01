@@ -30,7 +30,7 @@ MAX_BRAND_REVENUE = 700_000
 DAILY_SEND_CAP = 40
 AUTO_SEND_COUNT = 40                 # all 40 auto-sent, no drafts
 SEND_WINDOW_START_HOUR = 9           # 9 AM
-SEND_WINDOW_END_HOUR = 16            # 4 PM
+SEND_WINDOW_END_HOUR = 17            # 5 PM
 
 # ── Follow-up cadence ─────────────────────────────────────────────────────────
 FOLLOWUP_DAYS = [10, 20]             # day 10 then day 20 from first send
