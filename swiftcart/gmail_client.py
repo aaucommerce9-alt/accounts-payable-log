@@ -81,22 +81,24 @@ def drip_send(
     subjects_bodies: list[tuple[str, str]],
 ) -> list[str]:
     """
-    Send emails dripped across SEND_WINDOW_START_HOUR–SEND_WINDOW_END_HOUR.
-    Returns list of message IDs.
+    Drip-send emails with a fixed interval between each.
+    40 emails over 4 hours = 1 every 6 minutes — safe for a single Gmail inbox.
     """
     count = len(brands_to_auto_send)
     if count == 0:
         return []
 
-    window_seconds = (config.SEND_WINDOW_END_HOUR - config.SEND_WINDOW_START_HOUR) * 3600
-    interval = window_seconds / count
+    # 6 minutes between sends = 40 emails over 4 hours
+    INTERVAL_SECONDS = 360
 
     message_ids = []
-    for brand, (subject, body) in zip(brands_to_auto_send, subjects_bodies):
+    for i, (brand, (subject, body)) in enumerate(zip(brands_to_auto_send, subjects_bodies)):
         msg_id = send_email(brand, subject, body)
         message_ids.append(msg_id)
-        if interval > 1:
-            time.sleep(interval)
+        # Don't sleep after the last email
+        if i < count - 1:
+            log.info("Drip: %d/%d sent, waiting %ds", i + 1, count, INTERVAL_SECONDS)
+            time.sleep(INTERVAL_SECONDS)
 
     return message_ids
 
