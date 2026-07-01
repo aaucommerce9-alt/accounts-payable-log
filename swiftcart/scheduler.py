@@ -100,33 +100,16 @@ def _run_daily_inner() -> None:
         queue.append((b, 0))
 
     queue = queue[: config.DAILY_SEND_CAP]
-    auto_send_items = queue[: config.AUTO_SEND_COUNT]
-    draft_items = queue[config.AUTO_SEND_COUNT :]
 
-    # ── Step 8: Write emails + send/draft ─────────────────────────────────────
-    # Auto-send (dripped)
-    auto_brands = [item[0] for item in auto_send_items]
-    auto_sbs = [personalize_email(b, fn) for b, fn in auto_send_items]
-    msg_ids = drip_send(auto_brands, auto_sbs)
-    for brand, msg_id, (subject, body) in zip(auto_brands, msg_ids, auto_sbs):
+    # ── Step 8: Write emails + auto-send all (dripped) ────────────────────────
+    brands_to_send = [item[0] for item in queue]
+    subjects_bodies = [personalize_email(b, fn) for b, fn in queue]
+    msg_ids = drip_send(brands_to_send, subjects_bodies)
+    for brand, msg_id, (subject, body) in zip(brands_to_send, msg_ids, subjects_bodies):
         _mark_sent(brand, today, msg_id)
         upsert_brand(brand)
 
-    # Drafts
-    for brand, followup_num in draft_items:
-        subject, body = personalize_email(brand, followup_num)
-        draft_id = create_draft(brand, subject, body)
-        brand.email_status = "drafted"
-        if not brand.send_date:
-            brand.send_date = today
-            _set_followup_dates(brand, today)
-        brand.notes = (brand.notes + f" draft_id={draft_id}").strip()
-        upsert_brand(brand)
-
-    log.info(
-        "=== Daily run done — %d auto-sent, %d drafted ===",
-        len(auto_brands), len(draft_items),
-    )
+    log.info("=== Daily run done — %d auto-sent ===", len(brands_to_send))
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

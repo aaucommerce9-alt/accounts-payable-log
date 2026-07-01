@@ -28,7 +28,7 @@ MAX_BRAND_REVENUE = 700_000
 
 # ── Send limits ───────────────────────────────────────────────────────────────
 DAILY_SEND_CAP = 40
-AUTO_SEND_COUNT = 20
+AUTO_SEND_COUNT = 40                 # all 40 auto-sent, no drafts
 SEND_WINDOW_START_HOUR = 9           # 9 AM
 SEND_WINDOW_END_HOUR = 16            # 4 PM
 

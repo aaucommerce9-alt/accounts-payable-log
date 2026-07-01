@@ -101,10 +101,18 @@ def drip_send(
     return message_ids
 
 
+BOUNCE_SENDERS = {"mailer-daemon@googlemail.com", "mailer-daemon@google.com",
+                  "postmaster@", "mailer-daemon@"}
+
+BOUNCE_SUBJECTS = ["delivery status notification", "undeliverable", "delivery failure",
+                   "address not found", "mail delivery failed", "returned mail"]
+
+
 def scan_inbox_for_replies(brands: list[BrandRecord]) -> list[str]:
     """
-    Scan the Gmail inbox for replies to previously sent emails.
-    Returns list of brand names that replied.
+    Scan the Gmail inbox for replies and bounces.
+    Marks replied brands as 'replied' and bounced brands as 'dead'.
+    Returns list of brand names that replied (not bounced).
     """
     svc = _get_service()
     replied_brands: list[str] = []
@@ -142,17 +150,32 @@ def scan_inbox_for_replies(brands: list[BrandRecord]) -> list[str]:
 
         headers = {h["name"]: h["value"] for h in msg.get("payload", {}).get("headers", [])}
         from_addr = headers.get("From", "").lower()
+        subject = headers.get("Subject", "").lower()
         in_reply_to = headers.get("In-Reply-To", "")
         references = headers.get("References", "")
         thread_id = msg.get("threadId", "")
 
+        # ── Bounce detection ──────────────────────────────────────────────────
+        if _is_bounce(from_addr, subject):
+            matched = _find_brand_for_bounce(
+                in_reply_to, references, thread_id,
+                msgid_to_brand, thread_to_brand
+            )
+            if matched:
+                log.warning("Bounce detected for %s — marking dead", matched.name)
+                matched.email_status = "dead"
+                matched.notes = (matched.notes + " bounce").strip()
+            else:
+                log.warning("Bounce received but no brand matched — from: %s subject: %s",
+                            from_addr, subject)
+            continue
+
+        # ── Reply matching ────────────────────────────────────────────────────
         matched_brand: Optional[BrandRecord] = None
 
-        # 1. Thread match
         if thread_id in thread_to_brand:
             matched_brand = thread_to_brand[thread_id]
 
-        # 2. In-Reply-To / References header match
         if not matched_brand:
             for ref in re.split(r"\s+", f"{in_reply_to} {references}"):
                 ref = ref.strip("<>")
@@ -160,7 +183,6 @@ def scan_inbox_for_replies(brands: list[BrandRecord]) -> list[str]:
                     matched_brand = msgid_to_brand[ref]
                     break
 
-        # 3. Domain match
         if not matched_brand:
             m_domain = _extract_domain(from_addr)
             if m_domain and m_domain in domain_to_brand:
@@ -175,6 +197,27 @@ def scan_inbox_for_replies(brands: list[BrandRecord]) -> list[str]:
             _log_ambiguous_reply(headers)
 
     return replied_brands
+
+
+def _is_bounce(from_addr: str, subject: str) -> bool:
+    if any(b in from_addr for b in BOUNCE_SENDERS):
+        return True
+    if any(s in subject for s in BOUNCE_SUBJECTS):
+        return True
+    return False
+
+
+def _find_brand_for_bounce(
+    in_reply_to: str, references: str, thread_id: str,
+    msgid_to_brand: dict, thread_to_brand: dict
+) -> Optional[BrandRecord]:
+    if thread_id in thread_to_brand:
+        return thread_to_brand[thread_id]
+    for ref in re.split(r"\s+", f"{in_reply_to} {references}"):
+        ref = ref.strip("<>")
+        if ref in msgid_to_brand:
+            return msgid_to_brand[ref]
+    return None
 
 
 def _extract_domain(email_str: str) -> str:
