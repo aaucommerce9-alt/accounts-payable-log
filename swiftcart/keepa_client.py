@@ -24,11 +24,12 @@ def discover_asins(limit: int = 500) -> list[dict]:
     params = {
         "page": 0,
         "perPage": min(limit, 500),
-        "sort": [["monthlySold", "desc"]],
-        "sellerCount_gte": config.MIN_SELLERS,
-        "sellerCount_lte": config.MAX_SELLERS,
-        "current_price_gte": int(config.MIN_PRICE_USD * 100),
-        "monthlySold_gte": config.MIN_UNITS_PER_MONTH,
+        "sort": [["current_SALES", "desc"]],
+        "avg30_COUNT_NEW_gte": config.MIN_SELLERS,
+        "avg30_COUNT_NEW_lte": config.MAX_SELLERS,
+        "current_NEW_gte": int(config.MIN_PRICE_USD * 100),
+        "avg30_SALES_gte": config.MIN_UNITS_PER_MONTH,
+        "current_AMAZON_lte": -1,
     }
     try:
         result = api.product_finder(params)
