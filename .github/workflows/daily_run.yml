@@ -1,0 +1,53 @@
+name: SwiftCart Daily Outreach
+
+on:
+  schedule:
+    - cron: '0 14 * * *'   # 9 AM ET (UTC-5 winter) / 10 AM ET (UTC-4 summer) — 7 days/week
+  workflow_dispatch:        # manual trigger from GitHub UI anytime
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350    # allows up to ~6hr drip window
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: claude/affectionate-feynman-r846jb
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write credential files from secrets
+        run: |
+          echo '${{ secrets.GMAIL_TOKEN_JSON }}' > token.json
+          echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
+          echo '${{ secrets.GMAIL_CREDENTIALS_JSON }}' > credentials.json
+
+      - name: Write .env from secrets
+        run: |
+          cat > .env << 'EOF'
+          KEEPA_API_KEY=${{ secrets.KEEPA_API_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_SHEET_ID=${{ secrets.GOOGLE_SHEET_ID }}
+          GMAIL_TOKEN_FILE=token.json
+          GMAIL_CREDENTIALS_FILE=credentials.json
+          EOF
+
+      - name: Run SwiftCart daily pipeline
+        run: python main.py
+
+      - name: Upload run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-log-${{ github.run_id }}
+          path: swiftcart/logs/run.log
+          retention-days: 30

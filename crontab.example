@@ -1,0 +1,3 @@
+# Add to crontab: crontab -e
+# Runs daily at 6 AM server time (adjust TZ to match your VPS timezone)
+0 6 * * * cd /opt/swiftcart && /opt/swiftcart/venv/bin/python main.py >> swiftcart/logs/cron.log 2>&1
