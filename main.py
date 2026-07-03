@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Entry point — run by cron daily."""
 import logging
+import os
 import sys
+
+os.makedirs("swiftcart/logs", exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
