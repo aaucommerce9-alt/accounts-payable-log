@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
     kept = []
+    drop_reasons: dict[str, int] = {}
     for r in records:
         reasons = []
         if not (config.MIN_SELLERS <= r.seller_count <= config.MAX_SELLERS):
@@ -25,10 +26,19 @@ def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
 
         if reasons:
             log.debug("Drop ASIN %s (%s): %s", r.asin, r.brand, ", ".join(reasons))
+            for reason in reasons:
+                key = reason.split("=")[0]
+                drop_reasons[key] = drop_reasons.get(key, 0) + 1
         else:
             kept.append(r)
 
-    log.info("ASIN filter: %d → %d", len(records), len(kept))
+    log.info("ASIN filter: %d → %d | drop breakdown: %s", len(records), len(kept), drop_reasons)
+    # Log sample values to diagnose parsing issues
+    if records and not kept:
+        sample = records[:3]
+        for s in sample:
+            log.info("Sample ASIN %s: price=%.2f sellers=%d units=%d amazon_pct=%.1f",
+                     s.asin, s.price_usd, s.seller_count, s.units_per_month, s.amazon_present_pct)
     return kept
 
 
