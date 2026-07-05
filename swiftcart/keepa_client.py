@@ -143,26 +143,43 @@ def _parse_fba_fee(p: dict) -> float:
 
 def fetch_asin_details_by_upc(upcs: list[str]) -> dict[str, AsinRecord]:
     """
-    Look up ASIN + full product/offer/fee data by UPC/EAN in one pass.
-    Returns {upc: AsinRecord} for whichever codes matched a live Amazon
-    listing — unmatched codes are simply absent from the result.
+    Look up ASIN + product data by UPC/EAN in one pass, sized for invoice
+    scans of hundreds to thousands of SKUs.
+
+    Batches at Keepa's real per-request ceiling (100 codes) instead of the
+    10 used for daily brand discovery. Pacing is driven by the account's
+    actual `tokens_left` / `time_to_refill` rather than a fixed sleep, and
+    a `KEEPA_TOKEN_RESERVE` buffer is left untouched so a large scan can't
+    starve the daily brand-discovery run of tokens. `history`/`offers` are
+    skipped (the most expensive part of a Keepa request) since an invoice
+    scan only needs current price, category, weight, and FBA fee — not
+    price history or live offer counts.
     """
     api = _api()
     mapping: dict[str, AsinRecord] = {}
-    batch_size = 10
+    batch_size = config.KEEPA_INVOICE_BATCH_SIZE
 
     for i in range(0, len(upcs), batch_size):
         chunk = upcs[i: i + batch_size]
+
+        api.update_status()
+        if api.tokens_left - len(chunk) < config.KEEPA_TOKEN_RESERVE:
+            wait_s = api.time_to_refill
+            log.info(
+                "Pausing %.0fs to keep %d tokens in reserve for other Keepa jobs",
+                wait_s, config.KEEPA_TOKEN_RESERVE,
+            )
+            time.sleep(wait_s)
+
         try:
             products = api.query(
-                chunk, product_code_is_asin=False, stats=90, offers=20, history=True
+                chunk, product_code_is_asin=False, stats=90, history=False, offers=None, wait=True,
             )
         except Exception as exc:
-            log.warning("UPC lookup failed for chunk %s: %s", chunk, exc)
+            log.warning("UPC lookup failed for chunk starting at %d: %s", i, exc)
             if _is_token_exhaustion(exc):
                 alerts.alert_keepa_exhausted(exc)
                 break
-            time.sleep(config.KEEPA_TOKEN_PAUSE_SECONDS)
             continue
 
         for p in products:
@@ -175,7 +192,6 @@ def fetch_asin_details_by_upc(upcs: list[str]) -> dict[str, AsinRecord]:
                 mapping[matched_upc] = rec
 
         log.info("UPC lookup: %d/%d codes processed", min(i + batch_size, len(upcs)), len(upcs))
-        time.sleep(config.KEEPA_TOKEN_PAUSE_SECONDS)
 
     return mapping
 

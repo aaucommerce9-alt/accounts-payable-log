@@ -39,6 +39,10 @@ MAX_FOLLOWUPS = 2
 # ── Keepa token pacing ────────────────────────────────────────────────────────
 KEEPA_TOKEN_PAUSE_SECONDS = 60       # ~1 token/min
 
+# ── Invoice-scan Keepa pacing (separate pool usage from daily brand discovery) ─
+KEEPA_INVOICE_BATCH_SIZE = 100       # Keepa's real per-request ceiling
+KEEPA_TOKEN_RESERVE = 50             # tokens left untouched for the daily cron job
+
 # ── Invoice-scan profitability thresholds ─────────────────────────────────────
 MIN_SKU_MARGIN_PCT = 15.0
 MIN_SKU_ROI_PCT = 25.0
