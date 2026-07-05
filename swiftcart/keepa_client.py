@@ -15,30 +15,38 @@ def _api() -> keepa.Keepa:
     return keepa.Keepa(config.KEEPA_API_KEY)
 
 
-def discover_asins(limit: int = 500) -> list[dict]:
+def discover_asins(pages: int = 3) -> list[str]:
     """
-    Run Keepa Product Finder with the project's ASIN-level filters.
-    Returns raw product dicts (cheap — no token burn per product here).
+    Run Keepa Product Finder across multiple pages to maximise ASIN coverage.
+    500 ASINs per page, deduped. Returns list of ASIN strings.
     """
     api = _api()
-    params = {
-        "page": 0,
-        "perPage": min(limit, 500),
+    base_params = {
+        "perPage": 500,
         "sort": [["current_SALES", "desc"]],
         "avg30_COUNT_NEW_gte": config.MIN_SELLERS,
         "avg30_COUNT_NEW_lte": config.MAX_SELLERS,
         "current_NEW_gte": int(config.MIN_PRICE_USD * 100),
         "avg30_SALES_gte": config.MIN_UNITS_PER_MONTH,
     }
-    try:
-        result = api.product_finder(params)
-        log.info("Product Finder returned %d ASINs", len(result))
-        return result or []
-    except Exception as exc:
-        log.error("Keepa Product Finder failed: %s", exc)
-        if _is_token_exhaustion(exc):
-            alerts.alert_keepa_exhausted(exc)
-        return []
+    all_asins: list[str] = []
+    seen: set[str] = set()
+    for page in range(pages):
+        params = {**base_params, "page": page}
+        try:
+            result = api.product_finder(params)
+            new = [a for a in (result or []) if a not in seen]
+            seen.update(new)
+            all_asins.extend(new)
+            log.info("Product Finder page %d: %d ASINs (total %d)", page, len(new), len(all_asins))
+            if len(result or []) < 500:
+                break  # no more pages
+        except Exception as exc:
+            log.error("Keepa Product Finder page %d failed: %s", page, exc)
+            if _is_token_exhaustion(exc):
+                alerts.alert_keepa_exhausted(exc)
+            break
+    return all_asins
 
 
 def fetch_asin_details(asins: list[str]) -> list[AsinRecord]:
@@ -68,7 +76,6 @@ def fetch_asin_details(asins: list[str]) -> list[AsinRecord]:
                 records.append(rec)
 
         log.info("Fetched %d/%d ASINs", min(i + batch_size, len(asins)), len(asins))
-        time.sleep(config.KEEPA_TOKEN_PAUSE_SECONDS)
 
     return records
 

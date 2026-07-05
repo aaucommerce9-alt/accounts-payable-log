@@ -55,8 +55,7 @@ def _run_daily_inner() -> None:
     # ── Step 2–3: Discover new brands ─────────────────────────────────────────
     raw_asins = discover_asins()
     if raw_asins:
-        asin_ids = [a if isinstance(a, str) else a.get("asin", "") for a in raw_asins]
-        asin_ids = [a for a in asin_ids if a]
+        asin_ids = raw_asins  # discover_asins now returns list[str]
         asin_records = fetch_asin_details(asin_ids)
         filtered = filter_asins(asin_records)
         new_brands = rollup_to_brands(filtered)
