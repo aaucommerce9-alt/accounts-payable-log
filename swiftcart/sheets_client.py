@@ -7,7 +7,7 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 from . import config
-from .models import BrandRecord
+from .models import BrandRecord, SkuEvaluation
 
 log = logging.getLogger(__name__)
 
@@ -132,4 +132,43 @@ def upsert_brand(brand: BrandRecord) -> None:
             valueInputOption="RAW",
             insertDataOption="INSERT_ROWS",
             body={"values": [row_data]},
+        ).execute()
+
+
+def write_invoice_results(
+    results: list[SkuEvaluation], sheet_name: str = config.INVOICE_SHEET_NAME
+) -> None:
+    """Append invoice-scan results to a dedicated sheet tab (header ensured first)."""
+    svc = _get_service()
+    sheet = svc.spreadsheets()
+
+    header_range = f"{sheet_name}!A1:M1"
+    existing = sheet.values().get(
+        spreadsheetId=config.GOOGLE_SHEET_ID, range=header_range
+    ).execute().get("values", [])
+    if not existing or existing[0] != config.INVOICE_SHEET_HEADERS:
+        sheet.values().update(
+            spreadsheetId=config.GOOGLE_SHEET_ID,
+            range=f"{sheet_name}!A1",
+            valueInputOption="RAW",
+            body={"values": [config.INVOICE_SHEET_HEADERS]},
+        ).execute()
+
+    rows = [
+        [
+            r.upc, r.asin, r.description, r.channel,
+            f"{r.cost_per_unit:.2f}", f"{r.sell_price:.2f}",
+            f"{r.referral_fee:.2f}", f"{r.fulfillment_fee:.2f}",
+            f"{r.profit_per_unit:.2f}", f"{r.margin_pct:.1f}",
+            f"{r.roi_pct:.1f}", str(r.units_per_month), r.verdict,
+        ]
+        for r in results
+    ]
+    if rows:
+        sheet.values().append(
+            spreadsheetId=config.GOOGLE_SHEET_ID,
+            range=f"{sheet_name}!A:M",
+            valueInputOption="RAW",
+            insertDataOption="INSERT_ROWS",
+            body={"values": rows},
         ).execute()

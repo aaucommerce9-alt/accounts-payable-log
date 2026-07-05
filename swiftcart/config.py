@@ -39,6 +39,45 @@ MAX_FOLLOWUPS = 2
 # ── Keepa token pacing ────────────────────────────────────────────────────────
 KEEPA_TOKEN_PAUSE_SECONDS = 60       # ~1 token/min
 
+# ── Invoice-scan profitability thresholds ─────────────────────────────────────
+MIN_SKU_MARGIN_PCT = 15.0
+MIN_SKU_ROI_PCT = 25.0
+MIN_SKU_VELOCITY = 10                # units/month
+
+# ── Amazon referral fee ───────────────────────────────────────────────────────
+DEFAULT_REFERRAL_FEE_PCT = 15.0
+CATEGORY_REFERRAL_FEE_PCT: dict[str, float] = {}   # per-category overrides, e.g. {"Electronics": 8.0}
+MIN_REFERRAL_FEE_USD = 0.30
+
+# ── FBA cost assumptions ──────────────────────────────────────────────────────
+# Fallback pick-and-pack fee by weight tier, used only when Keepa has no fbaFees data.
+FBA_FEE_WEIGHT_TIERS = [
+    (1.0, 3.50),
+    (3.0, 5.50),
+    (5.0, 7.50),
+    (float("inf"), 12.00),
+]
+INBOUND_SHIPPING_PER_UNIT = 0.50     # cost to ship a unit to an Amazon FC
+PREP_COST_USD = 0.0                  # labeling/poly-bagging etc., per unit
+
+# ── FBM cost assumptions ──────────────────────────────────────────────────────
+# Outbound shipping cost by weight tier — replace with your real carrier rates.
+SHIPPING_WEIGHT_TIERS = [
+    (1.0, 4.50),
+    (3.0, 6.50),
+    (5.0, 9.00),
+    (float("inf"), 15.00),
+]
+PACKAGING_COST_USD = 0.50
+
+# ── Invoice-scan sheet output ─────────────────────────────────────────────────
+INVOICE_SHEET_NAME = "InvoiceScan"
+INVOICE_SHEET_HEADERS = [
+    "UPC", "ASIN", "Description", "Channel", "Cost", "Sell Price",
+    "Referral Fee", "Fulfillment Fee", "Profit/Unit", "Margin %",
+    "ROI %", "Units/mo", "Verdict",
+]
+
 # ── Gmail OAuth ───────────────────────────────────────────────────────────────
 GMAIL_TOKEN_FILE = os.getenv("GMAIL_TOKEN_FILE", "token.json")
 GMAIL_CREDENTIALS_FILE = os.getenv("GMAIL_CREDENTIALS_FILE", "credentials.json")

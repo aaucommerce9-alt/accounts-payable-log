@@ -99,6 +99,9 @@ def _parse_product(p: dict) -> Optional[AsinRecord]:
         # 90-day price for crash detection
         price_90d = _price_90d_ago(p)
 
+        weight_lb = _parse_weight(p)
+        fba_fee_usd = _parse_fba_fee(p)
+
         if not asin or not brand:
             return None
 
@@ -112,10 +115,69 @@ def _parse_product(p: dict) -> Optional[AsinRecord]:
             amazon_present_pct=amazon_pct,
             price_90d_ago=price_90d,
             category=category,
+            weight_lb=weight_lb,
+            fba_fee_usd=fba_fee_usd,
         )
     except Exception as exc:
         log.debug("Failed to parse product %s: %s", p.get("asin"), exc)
         return None
+
+
+def _parse_weight(p: dict) -> float:
+    """Package weight in pounds — Keepa reports grams."""
+    grams = p.get("packageWeight") or p.get("itemWeight") or 0
+    try:
+        return round(float(grams) / 453.592, 2) if grams else 0.0
+    except Exception:
+        return 0.0
+
+
+def _parse_fba_fee(p: dict) -> float:
+    """FBA pick-and-pack fee in USD — Keepa reports cents, 0 if not available."""
+    cents = (p.get("fbaFees") or {}).get("pickAndPackFee")
+    try:
+        return round(cents / 100.0, 2) if cents else 0.0
+    except Exception:
+        return 0.0
+
+
+def fetch_asin_details_by_upc(upcs: list[str]) -> dict[str, AsinRecord]:
+    """
+    Look up ASIN + full product/offer/fee data by UPC/EAN in one pass.
+    Returns {upc: AsinRecord} for whichever codes matched a live Amazon
+    listing — unmatched codes are simply absent from the result.
+    """
+    api = _api()
+    mapping: dict[str, AsinRecord] = {}
+    batch_size = 10
+
+    for i in range(0, len(upcs), batch_size):
+        chunk = upcs[i: i + batch_size]
+        try:
+            products = api.query(
+                chunk, product_code_is_asin=False, stats=90, offers=20, history=True
+            )
+        except Exception as exc:
+            log.warning("UPC lookup failed for chunk %s: %s", chunk, exc)
+            if _is_token_exhaustion(exc):
+                alerts.alert_keepa_exhausted(exc)
+                break
+            time.sleep(config.KEEPA_TOKEN_PAUSE_SECONDS)
+            continue
+
+        for p in products:
+            rec = _parse_product(p)
+            if not rec:
+                continue
+            codes = set((p.get("upcList") or []) + (p.get("eanList") or []))
+            matched_upc = next((u for u in chunk if u in codes), None)
+            if matched_upc:
+                mapping[matched_upc] = rec
+
+        log.info("UPC lookup: %d/%d codes processed", min(i + batch_size, len(upcs)), len(upcs))
+        time.sleep(config.KEEPA_TOKEN_PAUSE_SECONDS)
+
+    return mapping
 
 
 def _calc_amazon_presence(p: dict) -> float:
