@@ -15,7 +15,7 @@ def _api() -> keepa.Keepa:
     return keepa.Keepa(config.KEEPA_API_KEY)
 
 
-def discover_asins(pages: int = 3) -> list[str]:
+def discover_asins(pages: int = 5) -> list[str]:
     """
     Run Keepa Product Finder across multiple pages to maximise ASIN coverage.
     500 ASINs per page, deduped. Returns list of ASIN strings.

@@ -8,7 +8,7 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 350    # allows up to ~6hr drip window
+    timeout-minutes: 360    # GitHub Actions max — Keepa discovery + 4hr email drip
 
     steps:
       - name: Checkout repo
