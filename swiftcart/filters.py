@@ -13,8 +13,6 @@ def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
     drop_reasons: dict[str, int] = {}
     for r in records:
         reasons = []
-        if not (config.MIN_SELLERS <= r.seller_count <= config.MAX_SELLERS):
-            reasons.append(f"sellers={r.seller_count}")
         if r.amazon_present_pct >= config.MAX_AMAZON_PRESENT_PCT:
             reasons.append(f"amazon_pct={r.amazon_present_pct}")
         if r.price_usd < config.MIN_PRICE_USD:
