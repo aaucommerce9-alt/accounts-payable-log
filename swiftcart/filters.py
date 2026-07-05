@@ -19,7 +19,9 @@ def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
             reasons.append(f"amazon_pct={r.amazon_present_pct}")
         if r.price_usd < config.MIN_PRICE_USD:
             reasons.append(f"price={r.price_usd}")
-        if r.units_per_month < config.MIN_UNITS_PER_MONTH:
+        # units_per_month already pre-filtered by Keepa product_finder (avg30_SALES_gte)
+        # Only drop if we have a non-zero reading that's clearly too low
+        if r.units_per_month > 0 and r.units_per_month < config.MIN_UNITS_PER_MONTH:
             reasons.append(f"units={r.units_per_month}")
         if _is_price_crash(r):
             reasons.append("price_crash")

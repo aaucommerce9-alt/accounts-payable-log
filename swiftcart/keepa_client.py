@@ -80,15 +80,32 @@ def _parse_product(p: dict) -> Optional[AsinRecord]:
         title = (p.get("title") or "").strip()
         category = (p.get("categoryTree") or [{}])[-1].get("name", "")
 
-        # Price: Keepa stores in cents; -1 means not available
-        price_cents = p.get("stats", {}).get("current", [None] * 2)
-        price_usd = (price_cents[1] / 100.0) if (price_cents and price_cents[1] and price_cents[1] > 0) else 0.0
+        stats = p.get("stats") or {}
+        current = stats.get("current") or []
+        avg30 = stats.get("avg30") or []
 
-        units_per_month = p.get("monthlySold") or 0
+        # Price: Keepa csv index 1 = NEW price, stored in cents; -1 = not available
+        def _cents(arr, idx):
+            try:
+                v = arr[idx]
+                return v / 100.0 if v and v > 0 else 0.0
+            except (IndexError, TypeError):
+                return 0.0
 
-        # Seller count from offers
-        offers = p.get("offers") or []
-        active_sellers = len([o for o in offers if o.get("isFBA") or o.get("isMerchant")])
+        price_usd = _cents(current, 1) or _cents(avg30, 1)
+
+        # COUNT_NEW = csv index 10 — number of active new 3P sellers
+        def _int_stat(arr, idx):
+            try:
+                v = arr[idx]
+                return int(v) if v and v > 0 else 0
+            except (IndexError, TypeError):
+                return 0
+
+        active_sellers = _int_stat(current, 10) or _int_stat(avg30, 10)
+
+        # Monthly units: keepa monthlySold field (populated for many products)
+        units_per_month = int(p.get("monthlySold") or 0)
 
         # Amazon present %: amazonExcluded flag; alternatively check csv data
         amazon_pct = _calc_amazon_presence(p)
