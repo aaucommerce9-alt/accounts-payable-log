@@ -24,7 +24,7 @@ PRICE_CRASH_DROP_PCT = 20            # drop if price fell >20 % in 90 days
 
 # ── Brand-level filters ───────────────────────────────────────────────────────
 MIN_BRAND_REVENUE = 50_000
-MAX_BRAND_REVENUE = 700_000
+MAX_BRAND_REVENUE = 500_000
 
 # ── Send limits ───────────────────────────────────────────────────────────────
 DAILY_SEND_CAP = 40

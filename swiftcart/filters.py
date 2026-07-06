@@ -8,11 +8,24 @@ from .models import AsinRecord, BrandRecord
 log = logging.getLogger(__name__)
 
 
+AMAZON_OWN_BRANDS = {
+    "amazonbasics", "amazon basics", "amazon essentials", "amazon collection",
+    "amazon brand", "solimo", "pinzon", "goodthreads", "daily ritual",
+    "core 10", "buttoned down", "206 collective", "ella moon", "lark & ro",
+    "find.", "truth & fable", "iris & lilly", "coastal blue", "spotted zebra",
+    "amazon aware", "presto!", "mama bear", "happy belly", "wickedly prime",
+    "whole foods", "365 by whole foods", "fire tv", "kindle", "echo",
+    "ring", "blink", "eero",
+}
+
+
 def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
     kept = []
     drop_reasons: dict[str, int] = {}
     for r in records:
         reasons = []
+        if r.brand.lower() in AMAZON_OWN_BRANDS:
+            reasons.append("amazon_brand")
         if r.amazon_present_pct >= config.MAX_AMAZON_PRESENT_PCT:
             reasons.append(f"amazon_pct={r.amazon_present_pct}")
         if r.price_usd < config.MIN_PRICE_USD:

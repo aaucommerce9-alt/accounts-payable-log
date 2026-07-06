@@ -21,6 +21,15 @@ def discover_asins(pages: int = 5) -> list[str]:
     500 ASINs per page, deduped. Returns list of ASIN strings.
     """
     api = _api()
+    EXCLUDED_CATEGORIES = [
+        283155,     # Books
+        5174,       # Music
+        468642,     # Video Games
+        16310101,   # Grocery & Gourmet Food
+        2625373011, # Amazon Devices & Accessories (Fire Stick, Echo, etc.)
+        229534,     # Software
+    ]
+
     base_params = {
         "perPage": 500,
         "sort": [["current_SALES", "desc"]],
@@ -28,6 +37,9 @@ def discover_asins(pages: int = 5) -> list[str]:
         "avg30_COUNT_NEW_lte": config.MAX_SELLERS,
         "current_NEW_gte": int(config.MIN_PRICE_USD * 100),
         "avg30_SALES_gte": config.MIN_UNITS_PER_MONTH,
+        "current_SALES_lte": 70000,
+        "current_COUNT_REVIEWS_gte": 50,
+        "categories_exclude": EXCLUDED_CATEGORIES,
     }
     all_asins: list[str] = []
     seen: set[str] = set()
