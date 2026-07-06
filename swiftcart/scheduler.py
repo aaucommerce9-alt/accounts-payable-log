@@ -103,10 +103,12 @@ def _run_daily_inner() -> None:
     # ── Step 8: Write emails + auto-send all (dripped) ────────────────────────
     brands_to_send = [item[0] for item in queue]
     subjects_bodies = [personalize_email(b, fn) for b, fn in queue]
-    msg_ids = drip_send(brands_to_send, subjects_bodies)
-    for brand, msg_id, (subject, body) in zip(brands_to_send, msg_ids, subjects_bodies):
+
+    def _after_send(brand: BrandRecord, msg_id: str) -> None:
         _mark_sent(brand, today, msg_id)
         upsert_brand(brand)
+
+    drip_send(brands_to_send, subjects_bodies, on_sent=_after_send)
 
     log.info("=== Daily run done — %d auto-sent ===", len(brands_to_send))
 

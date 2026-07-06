@@ -79,23 +79,25 @@ def create_draft(brand: BrandRecord, subject: str, body: str) -> str:
 def drip_send(
     brands_to_auto_send: list[BrandRecord],
     subjects_bodies: list[tuple[str, str]],
+    on_sent=None,
 ) -> list[str]:
     """
     Drip-send emails with a fixed interval between each.
     40 emails over 4 hours = 1 every 6 minutes — safe for a single Gmail inbox.
+    on_sent(brand, msg_id) is called immediately after each send (e.g. to write the sheet).
     """
     count = len(brands_to_auto_send)
     if count == 0:
         return []
 
-    # 6 minutes between sends = 40 emails over 4 hours
-    INTERVAL_SECONDS = 360
+    INTERVAL_SECONDS = 360  # 6 minutes between sends
 
     message_ids = []
     for i, (brand, (subject, body)) in enumerate(zip(brands_to_auto_send, subjects_bodies)):
         msg_id = send_email(brand, subject, body)
         message_ids.append(msg_id)
-        # Don't sleep after the last email
+        if on_sent:
+            on_sent(brand, msg_id)
         if i < count - 1:
             log.info("Drip: %d/%d sent, waiting %ds", i + 1, count, INTERVAL_SECONDS)
             time.sleep(INTERVAL_SECONDS)
