@@ -20,8 +20,8 @@ Target hit rate: ~80–90% free.
 """
 import re
 import logging
+import signal
 import socket
-import smtplib
 import time
 import urllib.parse
 from typing import Optional
@@ -67,7 +67,23 @@ SKIP_PATTERNS = [
 
 # ── Main entry point ──────────────────────────────────────────────────────────
 
-def find_contact_email(brand_name: str, domain: str) -> Optional[str]:
+def find_contact_email(brand_name: str, domain: str, timeout: int = 60) -> Optional[str]:
+    """Return the best contact email found, or None. Gives up after `timeout` seconds."""
+    def _handler(signum, frame):
+        raise TimeoutError()
+    old = signal.signal(signal.SIGALRM, _handler)
+    signal.alarm(timeout)
+    try:
+        return _find_contact_email_inner(brand_name, domain)
+    except TimeoutError:
+        log.warning("Contact search timed out for %s after %ds", brand_name, timeout)
+        return None
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old)
+
+
+def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
     """Return the best contact email found, or None."""
 
     # Build list of domains to try
@@ -266,37 +282,13 @@ def _shopify_probe(domain: str) -> Optional[str]:
     return None
 
 
-# ── 3. Pattern + SMTP verify ──────────────────────────────────────────────────
+# ── 3. Pattern-based guess (no SMTP — port 25 blocked on cloud runners) ───────
 
 def _pattern_verify(domain: str) -> Optional[str]:
-    mx = _get_mx(domain)
-    if not mx:
+    """Return a guessed wholesale@ address for this domain (no SMTP probe)."""
+    if not _domain_resolves(domain):
         return None
-    for prefix in COMMON_PREFIXES:
-        email = f"{prefix}@{domain}"
-        if _smtp_verify(email, mx):
-            return email
-    return None
-
-
-def _get_mx(domain: str) -> Optional[str]:
-    try:
-        import dns.resolver
-        records = dns.resolver.resolve(domain, "MX")
-        return sorted(records, key=lambda r: r.preference)[0].exchange.to_text().rstrip(".")
-    except Exception:
-        return None
-
-
-def _smtp_verify(email: str, mx: str) -> bool:
-    try:
-        with smtplib.SMTP(mx, 25, timeout=6) as smtp:
-            smtp.ehlo("swiftcartsupply.com")
-            smtp.mail("probe@swiftcartsupply.com")
-            code, _ = smtp.rcpt(email)
-            return code == 250
-    except Exception:
-        return False
+    return f"wholesale@{domain}"
 
 
 # ── 4. Whois ──────────────────────────────────────────────────────────────────
@@ -538,14 +530,3 @@ def _is_good_email(email: str, domain: str) -> bool:
     return not any(skip in local for skip in SKIP_PATTERNS)
 
 
-def _deobfuscate(text: str, domain: str) -> Optional[str]:
-    pattern = re.compile(
-        r"([a-zA-Z0-9._%+\-]+)\s*[\[\(]?\s*at\s*[\]\)]?\s*"
-        r"([a-zA-Z0-9.\-]+)\s*[\[\(]?\s*dot\s*[\]\)]?\s*([a-zA-Z]{2,})",
-        re.IGNORECASE,
-    )
-    for m in pattern.finditer(text):
-        email = f"{m.group(1)}@{m.group(2)}.{m.group(3)}".lower()
-        if _is_good_email(email, domain):
-            return email
-    return None

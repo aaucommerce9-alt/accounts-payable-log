@@ -15,7 +15,7 @@ def _api() -> keepa.Keepa:
     return keepa.Keepa(config.KEEPA_API_KEY)
 
 
-def discover_asins(pages: int = 5) -> list[str]:
+def discover_asins(pages: int = 3) -> list[str]:
     """
     Run Keepa Product Finder across multiple pages to maximise ASIN coverage.
     500 ASINs per page, deduped. Returns list of ASIN strings.
@@ -73,7 +73,7 @@ def fetch_asin_details(asins: list[str]) -> list[AsinRecord]:
     for i in range(0, len(asins), batch_size):
         chunk = asins[i: i + batch_size]
         try:
-            products = api.query(chunk, stats=90, offers=20, history=True)
+            products = api.query(chunk, stats=90, offers=20, history=False)
         except Exception as exc:
             log.warning("Keepa query failed for chunk %s: %s", chunk, exc)
             if _is_token_exhaustion(exc):
