@@ -1,5 +1,4 @@
 """Keepa API wrapper — discovery + per-ASIN data pull."""
-import time
 import logging
 from typing import Optional
 import keepa
@@ -73,13 +72,12 @@ def fetch_asin_details(asins: list[str]) -> list[AsinRecord]:
     for i in range(0, len(asins), batch_size):
         chunk = asins[i: i + batch_size]
         try:
-            products = api.query(chunk, stats=90, offers=20, history=False)
+            products = api.query(chunk, stats=90, history=False)
         except Exception as exc:
             log.warning("Keepa query failed for chunk %s: %s", chunk, exc)
             if _is_token_exhaustion(exc):
                 alerts.alert_keepa_exhausted(exc)
                 break   # no point continuing if tokens are gone
-            time.sleep(config.KEEPA_TOKEN_PAUSE_SECONDS)
             continue
 
         for p in products:
@@ -123,8 +121,8 @@ def _parse_product(p: dict) -> Optional[AsinRecord]:
 
         active_sellers = _int_stat(current, 10) or _int_stat(avg30, 10)
 
-        # Monthly units: keepa monthlySold field (populated for many products)
-        units_per_month = int(p.get("monthlySold") or 0)
+        # Monthly units: keepa monthlySold field; fall back to pre-filter floor if missing
+        units_per_month = int(p.get("monthlySold") or 0) or config.MIN_UNITS_PER_MONTH
 
         # Amazon present %: amazonExcluded flag; alternatively check csv data
         amazon_pct = _calc_amazon_presence(p)

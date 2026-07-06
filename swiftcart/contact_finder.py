@@ -105,12 +105,6 @@ def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
             return email
 
     for d in domains:
-        email = _pattern_verify(d)
-        if email:
-            log.info("[smtp] %s → %s", brand_name, email)
-            return email
-
-    for d in domains:
         email = _whois_email(d)
         if email:
             log.info("[whois] %s → %s", brand_name, email)
@@ -158,6 +152,13 @@ def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
     if email:
         log.info("[amazon] %s → %s", brand_name, email)
         return email
+
+    # Last resort: guess wholesale@ on confirmed domain
+    for d in domains:
+        email = _pattern_verify(d)
+        if email:
+            log.info("[guess] %s → %s", brand_name, email)
+            return email
 
     log.info("No contact found for %s", brand_name)
     return None
