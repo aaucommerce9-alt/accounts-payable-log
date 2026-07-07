@@ -55,7 +55,7 @@ def _make_asin(**kwargs) -> AsinRecord:
         asin="B000TEST01", brand="TestBrand", title="Test Product",
         price_usd=30.0, units_per_month=100, seller_count=5,
         amazon_present_pct=10.0, price_90d_ago=30.0, category="Health",
-        weight_lb=2.0, fba_fee_usd=0.0,
+        weight_lb=2.0, fba_fee_usd=0.0, bsr=10_000, amazon_is_buybox=False,
     )
     defaults.update(kwargs)
     return AsinRecord(**defaults)
@@ -122,6 +122,34 @@ def test_verdict_marginal_when_profitable_but_under_threshold():
     assert result.profit_per_unit > 0
     assert result.margin_pct < config.MIN_SKU_MARGIN_PCT
     assert result.verdict == "marginal"
+
+
+def test_verdict_skip_when_amazon_holds_buybox():
+    # otherwise a clear "buy" — high margin, high ROI, good velocity, good BSR —
+    # but Amazon itself holds the buy box, which is a hard exclusion
+    asin = _make_asin(price_usd=50.0, fba_fee_usd=3.0, units_per_month=500,
+                       bsr=1_000, amazon_is_buybox=True)
+    item = _make_item(cost_per_unit=5.0)
+    result = evaluate_sku(item, asin, "FBA")
+    assert result.verdict == "skip"
+    assert "amazon_has_buybox" in result.reasons
+
+
+def test_verdict_fails_when_bsr_too_high():
+    asin = _make_asin(price_usd=50.0, fba_fee_usd=3.0, units_per_month=500,
+                       bsr=config.MAX_SKU_BSR + 1)
+    item = _make_item(cost_per_unit=5.0)
+    result = evaluate_sku(item, asin, "FBA")
+    assert result.verdict != "buy"
+    assert any("bsr=" in r for r in result.reasons)
+
+
+def test_verdict_fails_when_bsr_unknown():
+    asin = _make_asin(price_usd=50.0, fba_fee_usd=3.0, units_per_month=500, bsr=0)
+    item = _make_item(cost_per_unit=5.0)
+    result = evaluate_sku(item, asin, "FBA")
+    assert result.verdict != "buy"
+    assert any("bsr=" in r for r in result.reasons)
 
 
 def test_invalid_channel_raises():

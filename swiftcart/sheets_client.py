@@ -142,7 +142,7 @@ def write_invoice_results(
     svc = _get_service()
     sheet = svc.spreadsheets()
 
-    header_range = f"{sheet_name}!A1:M1"
+    header_range = f"{sheet_name}!A1:O1"
     existing = sheet.values().get(
         spreadsheetId=config.GOOGLE_SHEET_ID, range=header_range
     ).execute().get("values", [])
@@ -160,14 +160,15 @@ def write_invoice_results(
             f"{r.cost_per_unit:.2f}", f"{r.sell_price:.2f}",
             f"{r.referral_fee:.2f}", f"{r.fulfillment_fee:.2f}",
             f"{r.profit_per_unit:.2f}", f"{r.margin_pct:.1f}",
-            f"{r.roi_pct:.1f}", str(r.units_per_month), r.verdict,
+            f"{r.roi_pct:.1f}", str(r.units_per_month),
+            str(r.bsr), str(r.amazon_is_buybox), r.verdict,
         ]
         for r in results
     ]
     if rows:
         sheet.values().append(
             spreadsheetId=config.GOOGLE_SHEET_ID,
-            range=f"{sheet_name}!A:M",
+            range=f"{sheet_name}!A:O",
             valueInputOption="RAW",
             insertDataOption="INSERT_ROWS",
             body={"values": rows},

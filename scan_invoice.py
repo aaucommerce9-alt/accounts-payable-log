@@ -37,13 +37,14 @@ def main() -> None:
                 csv.writer(f).writerow(config.INVOICE_SHEET_HEADERS)
         sys.exit(0)
 
-    print(f"\n{'UPC':<14}{'ASIN':<12}{'Sell':>8}{'Cost':>8}{'Fees':>8}{'Profit':>8}{'Margin%':>9}{'ROI%':>8}  Verdict")
+    print(f"\n{'UPC':<14}{'ASIN':<12}{'Sell':>8}{'Cost':>8}{'Fees':>8}{'Profit':>8}{'Margin%':>9}{'ROI%':>8}{'BSR':>9}{'AmzBB':>7}  Verdict")
     print("-" * 100)
     for r in results:
         fees = r.referral_fee + r.fulfillment_fee
         print(
             f"{r.upc:<14}{r.asin:<12}{r.sell_price:>8.2f}{r.cost_per_unit:>8.2f}"
-            f"{fees:>8.2f}{r.profit_per_unit:>8.2f}{r.margin_pct:>9.1f}{r.roi_pct:>8.1f}  {r.verdict}"
+            f"{fees:>8.2f}{r.profit_per_unit:>8.2f}{r.margin_pct:>9.1f}{r.roi_pct:>8.1f}"
+            f"{r.bsr:>9}{str(r.amazon_is_buybox):>7}  {r.verdict}"
         )
 
     buys = sum(1 for r in results if r.verdict == "buy")
@@ -57,7 +58,7 @@ def main() -> None:
                 writer.writerow([
                     r.upc, r.asin, r.description, r.channel, r.cost_per_unit, r.sell_price,
                     r.referral_fee, r.fulfillment_fee, r.profit_per_unit, r.margin_pct,
-                    r.roi_pct, r.units_per_month, r.verdict,
+                    r.roi_pct, r.units_per_month, r.bsr, r.amazon_is_buybox, r.verdict,
                 ])
         print(f"Results written to {args.csv_out}")
 

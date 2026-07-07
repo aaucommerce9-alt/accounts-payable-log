@@ -17,6 +17,8 @@ class AsinRecord:
     category: str
     weight_lb: float = 0.0
     fba_fee_usd: float = 0.0          # Keepa pick-and-pack fee, 0 if unavailable
+    bsr: int = 0                      # Best Sellers Rank, 0 if unavailable
+    amazon_is_buybox: bool = False    # True if Amazon itself currently holds the buy box
 
 
 @dataclass
@@ -70,5 +72,7 @@ class SkuEvaluation:
     units_per_month: int
     seller_count: int
     amazon_present_pct: float
+    bsr: int
+    amazon_is_buybox: bool
     verdict: str                     # "buy" / "marginal" / "skip"
     reasons: list = field(default_factory=list)

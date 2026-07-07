@@ -46,7 +46,9 @@ KEEPA_TOKEN_RESERVE = 50             # tokens left untouched for the daily cron 
 # ── Invoice-scan profitability thresholds ─────────────────────────────────────
 MIN_SKU_MARGIN_PCT = 15.0
 MIN_SKU_ROI_PCT = 25.0
-MIN_SKU_VELOCITY = 10                # units/month
+MIN_SKU_VELOCITY = 30                # units/month
+MAX_SKU_BSR = 75_000                 # Best Sellers Rank must be better (lower) than this
+EXCLUDE_AMAZON_BUYBOX = True         # skip SKUs where Amazon itself currently holds the buy box
 
 # ── Amazon referral fee ───────────────────────────────────────────────────────
 DEFAULT_REFERRAL_FEE_PCT = 15.0
@@ -79,7 +81,7 @@ INVOICE_SHEET_NAME = "InvoiceScan"
 INVOICE_SHEET_HEADERS = [
     "UPC", "ASIN", "Description", "Channel", "Cost", "Sell Price",
     "Referral Fee", "Fulfillment Fee", "Profit/Unit", "Margin %",
-    "ROI %", "Units/mo", "Verdict",
+    "ROI %", "Units/mo", "BSR", "Amazon Buy Box", "Verdict",
 ]
 
 # ── Gmail OAuth ───────────────────────────────────────────────────────────────

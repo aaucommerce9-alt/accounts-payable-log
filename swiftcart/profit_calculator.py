@@ -27,7 +27,9 @@ def evaluate_sku(item: InvoiceLineItem, asin: AsinRecord, channel: str) -> SkuEv
     margin_pct = (profit / sell_price * 100) if sell_price > 0 else 0.0
     roi_pct = (profit / total_cost * 100) if total_cost > 0 else 0.0
 
-    verdict, reasons = _verdict(margin_pct, roi_pct, asin.units_per_month)
+    verdict, reasons = _verdict(
+        margin_pct, roi_pct, asin.units_per_month, asin.bsr, asin.amazon_is_buybox
+    )
 
     return SkuEvaluation(
         upc=item.upc,
@@ -46,6 +48,8 @@ def evaluate_sku(item: InvoiceLineItem, asin: AsinRecord, channel: str) -> SkuEv
         units_per_month=asin.units_per_month,
         seller_count=asin.seller_count,
         amazon_present_pct=asin.amazon_present_pct,
+        bsr=asin.bsr,
+        amazon_is_buybox=asin.amazon_is_buybox,
         verdict=verdict,
         reasons=reasons,
     )
@@ -64,7 +68,12 @@ def _tiered_fee(weight_lb: float, tiers: list[tuple[float, float]]) -> float:
     return tiers[-1][1]
 
 
-def _verdict(margin_pct: float, roi_pct: float, units_per_month: int) -> tuple[str, list[str]]:
+def _verdict(
+    margin_pct: float, roi_pct: float, units_per_month: int, bsr: int, amazon_is_buybox: bool
+) -> tuple[str, list[str]]:
+    if config.EXCLUDE_AMAZON_BUYBOX and amazon_is_buybox:
+        return "skip", ["amazon_has_buybox"]
+
     reasons = []
     if margin_pct < config.MIN_SKU_MARGIN_PCT:
         reasons.append(f"margin={margin_pct:.1f}%")
@@ -72,6 +81,8 @@ def _verdict(margin_pct: float, roi_pct: float, units_per_month: int) -> tuple[s
         reasons.append(f"roi={roi_pct:.1f}%")
     if units_per_month < config.MIN_SKU_VELOCITY:
         reasons.append(f"units/mo={units_per_month}")
+    if bsr <= 0 or bsr > config.MAX_SKU_BSR:
+        reasons.append(f"bsr={bsr or 'unknown'}")
 
     if not reasons:
         return "buy", []

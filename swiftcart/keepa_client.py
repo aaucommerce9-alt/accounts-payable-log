@@ -10,6 +10,8 @@ from .models import AsinRecord
 
 log = logging.getLogger(__name__)
 
+AMAZON_SELLER_ID = "ATVPDKIKX0DER"   # Amazon's own seller ID on amazon.com
+
 
 def _api() -> keepa.Keepa:
     return keepa.Keepa(config.KEEPA_API_KEY)
@@ -101,6 +103,8 @@ def _parse_product(p: dict) -> Optional[AsinRecord]:
 
         weight_lb = _parse_weight(p)
         fba_fee_usd = _parse_fba_fee(p)
+        bsr = _parse_bsr(p)
+        amazon_is_buybox = _parse_amazon_buybox(p)
 
         if not asin or not brand:
             return None
@@ -117,6 +121,8 @@ def _parse_product(p: dict) -> Optional[AsinRecord]:
             category=category,
             weight_lb=weight_lb,
             fba_fee_usd=fba_fee_usd,
+            bsr=bsr,
+            amazon_is_buybox=amazon_is_buybox,
         )
     except Exception as exc:
         log.debug("Failed to parse product %s: %s", p.get("asin"), exc)
@@ -151,9 +157,9 @@ def fetch_asin_details_by_upc(upcs: list[str]) -> dict[str, AsinRecord]:
     actual `tokens_left` / `time_to_refill` rather than a fixed sleep, and
     a `KEEPA_TOKEN_RESERVE` buffer is left untouched so a large scan can't
     starve the daily brand-discovery run of tokens. `history`/`offers` are
-    skipped (the most expensive part of a Keepa request) since an invoice
-    scan only needs current price, category, weight, and FBA fee — not
-    price history or live offer counts.
+    skipped (the most expensive, unbounded-cost part of a Keepa request);
+    `buybox` is kept on since it's a fixed +2 tokens/product and is needed
+    to tell whether Amazon itself currently holds the buy box.
     """
     api = _api()
     mapping: dict[str, AsinRecord] = {}
@@ -173,7 +179,8 @@ def fetch_asin_details_by_upc(upcs: list[str]) -> dict[str, AsinRecord]:
 
         try:
             products = api.query(
-                chunk, product_code_is_asin=False, stats=90, history=False, offers=None, wait=True,
+                chunk, product_code_is_asin=False, stats=90, history=False, offers=None,
+                buybox=True, wait=True,
             )
         except Exception as exc:
             log.warning("UPC lookup failed for chunk starting at %d: %s", i, exc)
@@ -223,6 +230,26 @@ def _price_90d_ago(p: dict) -> float:
         return valid[0] if valid else 0.0
     except Exception:
         return 0.0
+
+
+def _parse_bsr(p: dict) -> int:
+    """Current Best Sellers Rank — Keepa csv/stats type index 3 (SALES)."""
+    try:
+        current = (p.get("stats") or {}).get("current") or []
+        rank = current[3] if len(current) > 3 else None
+        return int(rank) if rank and rank > 0 else 0
+    except Exception:
+        return 0
+
+
+def _parse_amazon_buybox(p: dict) -> bool:
+    """True if Amazon's own seller ID currently holds the buy box."""
+    try:
+        stats = p.get("stats") or {}
+        seller_id = stats.get("buyBoxSellerId") or p.get("buyBoxSellerId")
+        return seller_id == AMAZON_SELLER_ID
+    except Exception:
+        return False
 
 
 def _is_token_exhaustion(exc: Exception) -> bool:
