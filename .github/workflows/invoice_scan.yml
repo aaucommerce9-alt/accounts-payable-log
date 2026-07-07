@@ -1,0 +1,65 @@
+name: Invoice Scan
+
+on:
+  push:
+    paths:
+      - "invoices/incoming/**"
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Fulfillment channel"
+        required: false
+        default: "FBA"
+        type: choice
+        options: [FBA, FBM]
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write .env from secret
+        run: echo "KEEPA_API_KEY=${{ secrets.KEEPA_API_KEY }}" > .env
+
+      - name: Scan new invoices
+        run: |
+          mkdir -p invoices/results
+          shopt -s nullglob
+          for f in invoices/incoming/*.csv invoices/incoming/*.xlsx invoices/incoming/*.xls invoices/incoming/*.pdf; do
+            name=$(basename "$f")
+            base="${name%.*}"
+            echo "Scanning $f"
+            python scan_invoice.py "$f" \
+              --channel "${{ github.event.inputs.channel || 'FBA' }}" \
+              --csv-out "invoices/results/${base}_result.csv"
+          done
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add invoices/results
+          git diff --staged --quiet || git commit -m "Invoice scan results ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          git push
+
+      - name: Upload results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: invoice-scan-results-${{ github.run_id }}
+          path: invoices/results
+          retention-days: 30

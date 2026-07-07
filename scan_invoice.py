@@ -7,6 +7,7 @@ Usage:
     python scan_invoice.py path/to/invoice.xlsx --channel FBM --sheet
 """
 import argparse
+import csv
 import logging
 import sys
 
@@ -15,7 +16,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
 
-from swiftcart import sheets_client
+from swiftcart import config, sheets_client
 from swiftcart.invoice_scanner import scan_invoice
 
 
@@ -24,12 +25,16 @@ def main() -> None:
     parser.add_argument("invoice", help="Path to invoice PDF/Excel/CSV")
     parser.add_argument("--channel", choices=["FBA", "FBM"], default="FBA", help="Fulfillment channel")
     parser.add_argument("--sheet", action="store_true", help="Also write results to the Google Sheet")
+    parser.add_argument("--csv-out", help="Write results to a CSV file at this path")
     args = parser.parse_args()
 
     results = scan_invoice(args.invoice, channel=args.channel)
 
     if not results:
         print("No SKUs matched to Amazon listings.")
+        if args.csv_out:
+            with open(args.csv_out, "w", newline="") as f:
+                csv.writer(f).writerow(config.INVOICE_SHEET_HEADERS)
         sys.exit(0)
 
     print(f"\n{'UPC':<14}{'ASIN':<12}{'Sell':>8}{'Cost':>8}{'Fees':>8}{'Profit':>8}{'Margin%':>9}{'ROI%':>8}  Verdict")
@@ -43,6 +48,18 @@ def main() -> None:
 
     buys = sum(1 for r in results if r.verdict == "buy")
     print(f"\n{buys}/{len(results)} SKUs are BUY at current thresholds.")
+
+    if args.csv_out:
+        with open(args.csv_out, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(config.INVOICE_SHEET_HEADERS)
+            for r in results:
+                writer.writerow([
+                    r.upc, r.asin, r.description, r.channel, r.cost_per_unit, r.sell_price,
+                    r.referral_fee, r.fulfillment_fee, r.profit_per_unit, r.margin_pct,
+                    r.roi_pct, r.units_per_month, r.verdict,
+                ])
+        print(f"Results written to {args.csv_out}")
 
     if args.sheet:
         try:
