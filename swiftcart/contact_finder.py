@@ -160,6 +160,13 @@ def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
             log.info("[guess] %s → %s", brand_name, email)
             return email
 
+    # Final fallback: blind guess on most likely .com slug even if DNS unconfirmed
+    slug = re.sub(r"[^a-z0-9]", "", brand_name.lower())
+    if slug:
+        guess = f"wholesale@{slug}.com"
+        log.info("[blind-guess] %s → %s", brand_name, guess)
+        return guess
+
     log.info("No contact found for %s", brand_name)
     return None
 
