@@ -35,8 +35,11 @@ EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")
 
 COMMON_PREFIXES = [
     "wholesale", "sales", "info", "contact", "hello", "trade",
-    "orders", "support", "purchasing", "accounts", "wholesale",
+    "orders", "support", "purchasing", "accounts",
     "buyer", "buyers", "retail", "distribution", "distributor",
+    "customercare", "customer.care", "customer_care",
+    "customerservice", "customer.service",
+    "inquiries", "inquiry", "partnerships", "vendors",
 ]
 
 CONTACT_PATHS = [
@@ -167,12 +170,14 @@ def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
             log.info("[guess] %s → %s", brand_name, email)
             return email
 
-    # Final fallback: blind guess on most likely .com slug even if DNS unconfirmed
+    # Final fallback: blind guess common prefixes on most likely .com slug
     slug = re.sub(r"[^a-z0-9]", "", brand_name.lower())
     if slug:
-        guess = f"wholesale@{slug}.com"
-        log.info("[blind-guess] %s → %s", brand_name, guess)
-        return guess
+        domain_guess = f"{slug}.com"
+        for prefix in ["wholesale", "sales", "customercare", "info", "contact"]:
+            guess = f"{prefix}@{domain_guess}"
+            log.info("[blind-guess] %s → %s", brand_name, guess)
+            return guess  # return first prefix; bounce detection handles bad guesses
 
     log.info("No contact found for %s", brand_name)
     return None
@@ -337,10 +342,10 @@ def _shopify_probe(domain: str) -> Optional[str]:
 # ── 3. Pattern-based guess (no SMTP — port 25 blocked on cloud runners) ───────
 
 def _pattern_verify(domain: str) -> Optional[str]:
-    """Return a guessed wholesale@ address for this domain (no SMTP probe)."""
+    """Return best-guess email addresses for this domain, priority order."""
     if not _domain_resolves(domain):
         return None
-    return f"wholesale@{domain}"
+    return f"wholesale@{domain}"  # caller gets first hit; scraping already ran
 
 
 # ── 4. Whois ──────────────────────────────────────────────────────────────────
