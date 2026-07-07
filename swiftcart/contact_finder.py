@@ -86,10 +86,17 @@ def find_contact_email(brand_name: str, domain: str, timeout: int = 60) -> Optio
 def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
     """Return the best contact email found, or None."""
 
-    # Build list of domains to try
+    # Build list of domains to try (DNS-verified guesses from brand name)
     domains = _collect_domains(brand_name, domain)
+
+    # If DNS guessing found nothing, search for the official website via DDG
     if not domains:
-        log.info("No domain resolved for %s", brand_name)
+        found_domain = _find_website_via_search(brand_name)
+        if found_domain:
+            log.info("[web-find] %s → domain %s", brand_name, found_domain)
+            domains = [found_domain]
+        else:
+            log.info("No domain resolved for %s", brand_name)
 
     # Try each source in order across all domains
     for d in domains:
@@ -168,6 +175,43 @@ def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
         return guess
 
     log.info("No contact found for %s", brand_name)
+    return None
+
+
+# ── Website discovery via search ─────────────────────────────────────────────
+
+SEARCH_JUNK_DOMAINS = {
+    "amazon.com", "walmart.com", "target.com", "ebay.com", "etsy.com",
+    "google.com", "bing.com", "duckduckgo.com", "facebook.com", "instagram.com",
+    "linkedin.com", "twitter.com", "x.com", "youtube.com", "pinterest.com",
+    "reddit.com", "wikipedia.org", "bbb.org", "yelp.com", "homedepot.com",
+    "wayfair.com", "overstock.com", "chewy.com", "zappos.com", "macys.com",
+}
+
+
+def _find_website_via_search(brand_name: str) -> Optional[str]:
+    """Search DDG for the brand's official website and return its domain."""
+    try:
+        query = f'"{brand_name}" official website'
+        url = f"https://html.duckduckgo.com/html/?q={urllib.parse.quote(query)}"
+        r = _get(url)
+        if not r:
+            return None
+        # Extract href links from DDG results
+        soup = BeautifulSoup(r.text, "html.parser")
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            # DDG result links are in the result__url class or similar
+            if "uddg=" in href:
+                import urllib.parse as up
+                parsed = up.parse_qs(up.urlparse(href).query)
+                real_url = parsed.get("uddg", [""])[0]
+                if real_url:
+                    domain = up.urlparse(real_url).netloc.lower().lstrip("www.")
+                    if domain and not any(j in domain for j in SEARCH_JUNK_DOMAINS) and "." in domain:
+                        return domain
+    except Exception:
+        pass
     return None
 
 
