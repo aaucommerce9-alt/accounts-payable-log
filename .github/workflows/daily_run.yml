@@ -2,7 +2,7 @@ name: SwiftCart Daily Outreach
 
 on:
   schedule:
-    - cron: '0 14 * * *'   # 9 AM ET (UTC-5 winter) / 10 AM ET (UTC-4 summer) — 7 days/week
+    - cron: '0 */2 * * *'  # every 2 hours, 24/7
   workflow_dispatch:        # manual trigger from GitHub UI anytime
 
 jobs:
