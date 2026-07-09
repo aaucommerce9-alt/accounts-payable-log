@@ -72,7 +72,7 @@ def fetch_asin_details(asins: list[str]) -> list[AsinRecord]:
     for i in range(0, len(asins), batch_size):
         chunk = asins[i: i + batch_size]
         try:
-            products = api.query(chunk, stats=90, history=False)
+            products = api.query(chunk, stats=180, history=False)
         except Exception as exc:
             log.warning("Keepa query failed for chunk %s: %s", chunk, exc)
             if _is_token_exhaustion(exc):
@@ -150,30 +150,42 @@ def _parse_product(p: dict) -> Optional[AsinRecord]:
 
 
 def _calc_amazon_presence(p: dict) -> float:
-    """Estimate % of time Amazon held the Buy Box from csv[0] history."""
+    """
+    Estimate Amazon's presence using stats (works with history=False).
+    stats.current[0] and stats.avg30[0] = Amazon price at index 0; -1 = not present.
+    Returns a synthetic percentage: 90 if currently present, 50 if present in avg30, else 0.
+    """
     try:
-        csv = p.get("csv") or []
-        # csv[0] = Amazon price history; -1 entries = not present
-        amazon_history = csv[0] if csv else []
-        # Values alternate: [timestamp, price, timestamp, price, ...]
-        prices = amazon_history[1::2] if amazon_history else []
-        if not prices:
-            return 0.0
-        present = sum(1 for v in prices if v and v > 0)
-        return round(present / len(prices) * 100, 1)
+        stats = p.get("stats") or {}
+        current = stats.get("current") or []
+        avg30 = stats.get("avg30") or []
+
+        def _amazon_active(arr):
+            try:
+                v = arr[0]
+                return isinstance(v, (int, float)) and v > 0
+            except (IndexError, TypeError):
+                return False
+
+        if _amazon_active(current):
+            return 90.0   # Amazon actively selling right now
+        if _amazon_active(avg30):
+            return 50.0   # Amazon was selling in the past 30 days
+        return 0.0
     except Exception:
         return 0.0
 
 
 def _price_90d_ago(p: dict) -> float:
-    """Return the new-listing price approximately 90 days ago."""
+    """Return the new-listing price from stats.avg90 (index 1 = NEW price)."""
     try:
-        csv = p.get("csv") or []
-        # csv[1] = new price history
-        new_history = csv[1] if len(csv) > 1 else []
-        prices = new_history[1::2] if new_history else []
-        valid = [v / 100.0 for v in prices if v and v > 0]
-        return valid[0] if valid else 0.0
+        stats = p.get("stats") or {}
+        avg90 = stats.get("avg90") or []
+        try:
+            v = avg90[1]
+            return v / 100.0 if isinstance(v, (int, float)) and v > 0 else 0.0
+        except (IndexError, TypeError):
+            return 0.0
     except Exception:
         return 0.0
 
