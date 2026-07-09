@@ -18,6 +18,28 @@ AMAZON_OWN_BRANDS = {
     "ring", "blink", "eero",
 }
 
+# Fortune 500 / household-name brands that will never wholesale to a small distributor
+MEGA_BRANDS = {
+    "samsung", "apple", "sony", "lg", "panasonic", "philips", "bosch", "siemens",
+    "nike", "adidas", "under armour", "puma", "reebok", "new balance", "asics",
+    "fossil", "casio", "seiko", "timex", "michael kors", "kate spade", "coach",
+    "levi's", "levis", "gap", "h&m", "zara", "calvin klein", "tommy hilfiger",
+    "ralph lauren", "polo ralph lauren", "lacoste", "gucci", "prada", "louis vuitton",
+    "dyson", "shark", "bissell", "roomba", "irobot", "kitchenaid", "cuisinart",
+    "instant pot", "ninja", "breville", "keurig", "nespresso", "hamilton beach",
+    "lego", "hasbro", "mattel", "fisher-price", "fisher price", "barbie",
+    "microsoft", "dell", "hp", "lenovo", "asus", "acer", "logitech", "razer",
+    "bose", "jbl", "harman kardon", "sennheiser", "beats", "jabra",
+    "coleman", "stanley", "yeti", "thermos", "hydro flask",
+    "rubbermaid", "tupperware", "oxo", "black+decker", "black and decker",
+    "dewalt", "milwaukee", "makita", "ryobi", "craftsman",
+    "revlon", "l'oreal", "loreal", "maybelline", "neutrogena", "olay", "dove",
+    "gillette", "oral-b", "colgate", "crest", "listerine",
+    "johnson & johnson", "johnson and johnson", "band-aid", "tylenol", "advil",
+    "purina", "hills science diet", "royal canin", "pedigree", "iams",
+    "procter & gamble", "unilever", "3m", "scotch", "post-it",
+}
+
 
 def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
     kept = []
@@ -26,6 +48,8 @@ def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
         reasons = []
         if r.brand.lower() in AMAZON_OWN_BRANDS:
             reasons.append("amazon_brand")
+        if r.brand.lower() in MEGA_BRANDS:
+            reasons.append("mega_brand")
         if r.amazon_present_pct >= config.MAX_AMAZON_PRESENT_PCT:
             reasons.append(f"amazon_pct={r.amazon_present_pct}")
         if r.price_usd < config.MIN_PRICE_USD:
