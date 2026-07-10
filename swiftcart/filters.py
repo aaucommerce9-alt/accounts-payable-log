@@ -94,6 +94,11 @@ def rollup_to_brands(asins: list[AsinRecord]) -> list[BrandRecord]:
 
     brands = []
     for brand_name, items in groups.items():
+        # Require ≥2 qualifying ASINs — single-ASIN brands are likely private label
+        if len(items) < 2:
+            log.debug("Drop brand %s: only %d qualifying ASIN (likely private label)", brand_name, len(items))
+            continue
+
         avg_price = sum(i.price_usd for i in items) / len(items)
         avg_sellers = sum(i.seller_count for i in items) / len(items)
         avg_amazon_pct = sum(i.amazon_present_pct for i in items) / len(items)

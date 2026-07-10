@@ -170,16 +170,8 @@ def _find_contact_email_inner(brand_name: str, domain: str) -> Optional[str]:
             log.info("[guess] %s → %s", brand_name, email)
             return email
 
-    # Final fallback: blind guess common prefixes on most likely .com slug
-    slug = re.sub(r"[^a-z0-9]", "", brand_name.lower())
-    if slug:
-        domain_guess = f"{slug}.com"
-        for prefix in ["wholesale", "sales", "customercare", "info", "contact"]:
-            guess = f"{prefix}@{domain_guess}"
-            log.info("[blind-guess] %s → %s", brand_name, guess)
-            return guess  # return first prefix; bounce detection handles bad guesses
-
-    log.info("No contact found for %s", brand_name)
+    # No real web presence found — likely private label / Amazon-only brand, skip
+    log.info("No real contact found for %s — skipping (possible private label)", brand_name)
     return None
 
 
