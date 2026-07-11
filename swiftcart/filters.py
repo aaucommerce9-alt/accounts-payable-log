@@ -38,7 +38,34 @@ MEGA_BRANDS = {
     "johnson & johnson", "johnson and johnson", "band-aid", "tylenol", "advil",
     "purina", "hills science diet", "royal canin", "pedigree", "iams",
     "procter & gamble", "unilever", "3m", "scotch", "post-it",
+    # Apparel & footwear — too large or category excluded
+    "dude", "dude perfect", "brooks", "brooks running", "skechers", "crocs", "vans",
+    "converse", "timberland", "ugg", "birkenstock", "dr. martens", "dr martens",
+    "wolverine", "merrell", "hoka", "on running", "on", "salomon", "columbia",
+    "the north face", "patagonia", "arc'teryx", "canada goose", "moncler",
+    "champion", "fila", "kappa", "ellesse", "carhartt", "wrangler", "lee",
+    "dickies", "hanes", "fruit of the loom", "gildan", "jockey",
+    "kate spade", "michael kors", "coach", "tory burch", "vera bradley",
+    "american eagle", "abercrombie", "hollister", "express", "forever 21",
+    "banana republic", "j.crew", "j crew", "old navy", "uniqlo",
+    "FootJoy", "footjoy", "callaway", "titleist", "ping", "taylormade",
 }
+
+
+# Category keywords that indicate apparel/footwear (excluded except socks)
+EXCLUDED_CATEGORY_KEYWORDS = {
+    "clothing", "apparel", "fashion", "shirt", "pants", "jeans", "dress", "skirt",
+    "jacket", "coat", "sweater", "hoodie", "shorts", "leggings", "underwear",
+    "shoes", "boots", "sneakers", "sandals", "heels", "loafers", "footwear",
+    "athletic shoes", "running shoes", "cleats", "slippers",
+}
+
+
+def _is_excluded_category(r: "AsinRecord") -> bool:
+    cat = r.category.lower()
+    if "sock" in cat:
+        return False  # socks are allowed
+    return any(kw in cat for kw in EXCLUDED_CATEGORY_KEYWORDS)
 
 
 def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
@@ -50,6 +77,8 @@ def filter_asins(records: list[AsinRecord]) -> list[AsinRecord]:
             reasons.append("amazon_brand")
         if r.brand.lower() in MEGA_BRANDS:
             reasons.append("mega_brand")
+        if _is_excluded_category(r):
+            reasons.append("excluded_category")
         if r.amazon_present_pct >= config.MAX_AMAZON_PRESENT_PCT:
             reasons.append(f"amazon_pct={r.amazon_present_pct}")
         if r.price_usd < config.MIN_PRICE_USD:
