@@ -37,7 +37,7 @@ jobs:
 
       - name: Scan new invoices
         run: |
-          mkdir -p invoices/results
+          mkdir -p invoices/results invoices/incoming/.processed
           shopt -s nullglob
           for f in invoices/incoming/*.csv invoices/incoming/*.xlsx invoices/incoming/*.xls invoices/incoming/*.pdf; do
             name=$(basename "$f")
@@ -46,13 +46,16 @@ jobs:
             python scan_invoice.py "$f" \
               --channel "${{ github.event.inputs.channel || 'FBA' }}" \
               --csv-out "invoices/results/${base}_result.csv"
+            # Move out of incoming/ so re-runs (e.g. workflow_dispatch) don't
+            # re-scan and re-spend Keepa tokens on files already processed.
+            git mv "$f" "invoices/incoming/.processed/$name"
           done
 
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add invoices/results
+          git add invoices/results invoices/incoming
           git diff --staged --quiet || git commit -m "Invoice scan results ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
           git push
 
