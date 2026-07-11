@@ -45,12 +45,12 @@ def load_brands() -> list[BrandRecord]:
     """Read all rows from the sheet and return BrandRecord objects."""
     svc = _get_service()
     result = svc.spreadsheets().values().get(
-        spreadsheetId=config.GOOGLE_SHEET_ID, range="Sheet1!A2:P"
+        spreadsheetId=config.GOOGLE_SHEET_ID, range="Sheet1!A2:Q"
     ).execute()
     rows = result.get("values", [])
     brands = []
     for row in rows:
-        row += [""] * (16 - len(row))   # pad short rows
+        row += [""] * (17 - len(row))   # pad short rows
         try:
             brands.append(BrandRecord(
                 name=row[0],
@@ -69,6 +69,7 @@ def load_brands() -> list[BrandRecord]:
                 followup2_date=_parse_date(row[13]),
                 replied=(row[14].lower() in ("yes", "true", "1")),
                 notes=row[15],
+                description=row[16],
             ))
         except Exception as exc:
             log.warning("Skipping malformed row: %s", exc)
@@ -115,6 +116,7 @@ def upsert_brand(brand: BrandRecord) -> None:
         _fmt_date(brand.followup2_date),
         "Yes" if brand.replied else "No",
         brand.notes,
+        brand.description,
     ]
 
     if row_num:
@@ -128,7 +130,7 @@ def upsert_brand(brand: BrandRecord) -> None:
     else:
         sheet.values().append(
             spreadsheetId=config.GOOGLE_SHEET_ID,
-            range="Sheet1!A:P",
+            range="Sheet1!A:Q",
             valueInputOption="RAW",
             insertDataOption="INSERT_ROWS",
             body={"values": [row_data]},

@@ -71,6 +71,11 @@ def _run_daily_inner() -> None:
     # Also drop already-tracked brands
     new_brands = [b for b in new_brands if b.name.lower() not in existing_names]
 
+    # ── Step 4b: Set description from category data ───────────────────────────
+    for brand in new_brands:
+        if brand.categories:
+            brand.description = ", ".join(brand.categories[:3])
+
     # ── Step 5: Find contact emails ───────────────────────────────────────────
     for brand in new_brands:
         email = find_contact_email(brand.name, brand.domain)

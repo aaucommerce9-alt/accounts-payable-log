@@ -35,6 +35,7 @@ class BrandRecord:
     followup2_date: Optional[date] = None
     replied: bool = False
     notes: str = ""
+    description: str = ""             # short description of what brand sells
     # internal use
     categories: list = field(default_factory=list)
     message_id: str = ""             # Gmail Message-ID of sent email

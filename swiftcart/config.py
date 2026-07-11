@@ -55,7 +55,7 @@ SHEET_HEADERS = [
     "Avg sellers", "Amazon present %", "Qualifying ASINs",
     "Units/mo", "Score", "Contact email", "Email status",
     "Send date", "Follow-up #1 date", "Follow-up #2 date",
-    "Replied?", "Notes",
+    "Replied?", "Notes", "Description",
 ]
 
 # ── Do-not-contact list ───────────────────────────────────────────────────────
