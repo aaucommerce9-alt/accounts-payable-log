@@ -16,6 +16,13 @@ on:
 permissions:
   contents: write
 
+# Only one scan runs at a time per branch — two overlapping runs would both
+# draw from the same Keepa token budget (starving each other) and race to
+# push their results, causing exactly the git conflict this queuing avoids.
+concurrency:
+  group: invoice-scan-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -57,6 +64,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add invoices/results invoices/incoming
           git diff --staged --quiet || git commit -m "Invoice scan results ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          git pull --rebase origin "${{ github.ref_name }}"
           git push
 
       - name: Upload results as artifact
