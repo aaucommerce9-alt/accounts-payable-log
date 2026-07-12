@@ -54,6 +54,7 @@ jobs:
               "$url" \
               -o "web_fetches/results/${name}.html"
             git mv "$f" "web_fetches/requests/.processed/$(basename "$f")"
+            sleep 1.5   # courtesy delay between requests to the same site
           done
 
       - name: Commit result
