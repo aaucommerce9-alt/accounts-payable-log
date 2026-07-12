@@ -1,0 +1,54 @@
+name: Fetch URL
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "URL to fetch"
+        required: true
+      output_name:
+        description: "Base filename for the saved page (no extension)"
+        required: false
+        default: "fetched_page"
+
+permissions:
+  contents: write
+
+# Same reasoning as Invoice Scan: queue overlapping runs instead of letting
+# them race to commit/push at the same time.
+concurrency:
+  group: fetch-url-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch URL
+        run: |
+          mkdir -p web_fetches
+          curl -sSL \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36" \
+            "${{ github.event.inputs.url }}" \
+            -o "web_fetches/${{ github.event.inputs.output_name }}.html"
+          echo "Fetched $(wc -c < "web_fetches/${{ github.event.inputs.output_name }}.html") bytes from ${{ github.event.inputs.url }}"
+
+      - name: Commit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web_fetches
+          git diff --staged --quiet || git commit -m "Fetch URL: ${{ github.event.inputs.url }}"
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push
+
+      - name: Upload as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fetched-page-${{ github.run_id }}
+          path: web_fetches
+          retention-days: 30
