@@ -1,6 +1,9 @@
 name: Fetch URL
 
 on:
+  push:
+    paths:
+      - "web_fetches/requests/**"
   workflow_dispatch:
     inputs:
       url:
@@ -27,21 +30,38 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Fetch URL
+      - name: Fetch URL(s) from workflow_dispatch input
+        if: github.event_name == 'workflow_dispatch'
         run: |
-          mkdir -p web_fetches
+          mkdir -p web_fetches/results
           curl -sSL \
             -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36" \
             "${{ github.event.inputs.url }}" \
-            -o "web_fetches/${{ github.event.inputs.output_name }}.html"
-          echo "Fetched $(wc -c < "web_fetches/${{ github.event.inputs.output_name }}.html") bytes from ${{ github.event.inputs.url }}"
+            -o "web_fetches/results/${{ github.event.inputs.output_name }}.html"
+          echo "Fetched $(wc -c < "web_fetches/results/${{ github.event.inputs.output_name }}.html") bytes from ${{ github.event.inputs.url }}"
+
+      - name: Fetch URL(s) from web_fetches/requests/
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p web_fetches/results web_fetches/requests/.processed
+          shopt -s nullglob
+          for f in web_fetches/requests/*.txt; do
+            name=$(basename "$f" .txt)
+            url=$(head -n1 "$f" | tr -d '\r\n')
+            echo "Fetching $url -> web_fetches/results/${name}.html"
+            curl -sSL \
+              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36" \
+              "$url" \
+              -o "web_fetches/results/${name}.html"
+            git mv "$f" "web_fetches/requests/.processed/$(basename "$f")"
+          done
 
       - name: Commit result
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add web_fetches
-          git diff --staged --quiet || git commit -m "Fetch URL: ${{ github.event.inputs.url }}"
+          git diff --staged --quiet || git commit -m "Fetch URL results ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
           git pull --rebase origin "${{ github.ref_name }}"
           git push
 
@@ -49,6 +69,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: fetched-page-${{ github.run_id }}
-          path: web_fetches
+          name: fetched-pages-${{ github.run_id }}
+          path: web_fetches/results
           retention-days: 30
