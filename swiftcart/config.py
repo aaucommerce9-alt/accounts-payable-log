@@ -47,7 +47,7 @@ KEEPA_TOKEN_RESERVE = 50             # tokens left untouched for the daily cron 
 MIN_SKU_MARGIN_PCT = 15.0
 MIN_SKU_ROI_PCT = 25.0
 MIN_SKU_VELOCITY = 30                # units/month
-MAX_SKU_BSR = 75_000                 # Best Sellers Rank must be better (lower) than this
+MAX_SKU_BSR = 150_000                # Best Sellers Rank must be better (lower) than this
 EXCLUDE_AMAZON_BUYBOX = True         # skip SKUs where Amazon itself currently holds the buy box
 
 # ── Amazon referral fee ───────────────────────────────────────────────────────
