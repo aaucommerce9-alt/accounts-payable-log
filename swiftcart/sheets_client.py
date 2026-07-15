@@ -120,7 +120,7 @@ def upsert_brand(brand: BrandRecord) -> None:
     ]
 
     if row_num:
-        range_str = f"Sheet1!A{row_num}:P{row_num}"
+        range_str = f"Sheet1!A{row_num}:Q{row_num}"
         sheet.values().update(
             spreadsheetId=config.GOOGLE_SHEET_ID,
             range=range_str,
