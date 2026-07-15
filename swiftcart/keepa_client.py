@@ -14,19 +14,28 @@ def _api() -> keepa.Keepa:
     return keepa.Keepa(config.KEEPA_API_KEY)
 
 
-def discover_asins(pages: int = 3) -> list[str]:
+def discover_asins() -> list[str]:
     """
-    Run Keepa Product Finder across multiple pages to maximise ASIN coverage.
-    500 ASINs per page, deduped. Returns list of ASIN strings.
+    Query Keepa Product Finder across multiple wholesale-friendly categories.
+    Each run sweeps all target categories (1 page each) for diverse brand coverage.
+    Returns deduped list of ASIN strings, capped to avoid token overuse.
     """
     api = _api()
-    EXCLUDED_CATEGORIES = [
-        283155,     # Books
-        5174,       # Music
-        468642,     # Video Games
-        16310101,   # Grocery & Gourmet Food
-        2625373011, # Amazon Devices & Accessories (Fire Stick, Echo, etc.)
-        229534,     # Software
+
+    # Wholesale-friendly categories — actively targeted (not just exclusions)
+    TARGET_CATEGORIES = [
+        1055398,     # Home & Kitchen
+        3375251,     # Sports & Outdoors
+        228013,      # Tools & Home Improvement
+        2619533,     # Pet Supplies
+        3760901,     # Health & Household
+        11055981,    # Beauty & Personal Care
+        1064954,     # Office Products
+        2972638011,  # Patio, Lawn & Garden
+        15684181,    # Automotive
+        165796011,   # Baby
+        165793011,   # Toys & Games
+        16310101,    # Grocery & Gourmet Food (snacks, supplements, packaged goods)
     ]
 
     base_params = {
@@ -38,25 +47,31 @@ def discover_asins(pages: int = 3) -> list[str]:
         "avg30_SALES_gte": config.MIN_UNITS_PER_MONTH,
         "current_SALES_lte": 70000,
         "current_COUNT_REVIEWS_gte": 50,
-        "categories_exclude": EXCLUDED_CATEGORIES,
     }
+
     all_asins: list[str] = []
     seen: set[str] = set()
-    for page in range(pages):
-        params = {**base_params, "page": page}
+
+    for cat_id in TARGET_CATEGORIES:
+        params = {**base_params, "categories_include": [cat_id], "page": 0}
         try:
             result = api.product_finder(params)
             new = [a for a in (result or []) if a not in seen]
             seen.update(new)
             all_asins.extend(new)
-            log.info("Product Finder page %d: %d ASINs (total %d)", page, len(new), len(all_asins))
-            if len(result or []) < 500:
-                break  # no more pages
+            log.info("Category %s: %d new ASINs (total %d)", cat_id, len(new), len(all_asins))
         except Exception as exc:
-            log.error("Keepa Product Finder page %d failed: %s", page, exc)
+            log.error("Keepa Product Finder category %s failed: %s", cat_id, exc)
             if _is_token_exhaustion(exc):
                 alerts.alert_keepa_exhausted(exc)
-            break
+                break
+
+    # Cap total to control token spend on detail fetches (~2 tokens/ASIN)
+    MAX_FETCH = 600
+    if len(all_asins) > MAX_FETCH:
+        all_asins = all_asins[:MAX_FETCH]
+        log.info("Capped ASIN pool to %d for token budget", MAX_FETCH)
+
     return all_asins
 
 
