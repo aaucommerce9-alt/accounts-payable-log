@@ -49,9 +49,17 @@ jobs:
           for f in invoices/incoming/*.csv invoices/incoming/*.xlsx invoices/incoming/*.xls invoices/incoming/*.pdf; do
             name=$(basename "$f")
             base="${name%.*}"
-            echo "Scanning $f"
+            # Filename convention: a "_fbm" suffix scans that file under FBM
+            # economics instead of the default FBA (e.g. re-checking an
+            # existing buy list against ship-to-3PL/merchant-fulfilled costs).
+            if [[ "$name" == *_fbm* ]]; then
+              channel="FBM"
+            else
+              channel="${{ github.event.inputs.channel || 'FBA' }}"
+            fi
+            echo "Scanning $f (channel=$channel)"
             python scan_invoice.py "$f" \
-              --channel "${{ github.event.inputs.channel || 'FBA' }}" \
+              --channel "$channel" \
               --csv-out "invoices/results/${base}_result.csv"
             # Move out of incoming/ so re-runs (e.g. workflow_dispatch) don't
             # re-scan and re-spend Keepa tokens on files already processed.
