@@ -14,7 +14,11 @@ AMAZON_SELLER_ID = "ATVPDKIKX0DER"   # Amazon's own seller ID on amazon.com
 
 
 def _api() -> keepa.Keepa:
-    return keepa.Keepa(config.KEEPA_API_KEY)
+    # The library's default 10s read timeout is too tight for a full
+    # `buybox=True` product query — Keepa's own ETA for e.g. a 96-code
+    # request is already ~30s, so the default kills legitimate in-flight
+    # requests and silently drops that whole chunk (see fetch_asin_details_by_upc).
+    return keepa.Keepa(config.KEEPA_API_KEY, timeout=90.0)
 
 
 def discover_asins(limit: int = 500) -> list[dict]:
@@ -177,16 +181,22 @@ def fetch_asin_details_by_upc(upcs: list[str]) -> dict[str, AsinRecord]:
             )
             time.sleep(wait_s)
 
-        try:
-            products = api.query(
-                chunk, product_code_is_asin=False, stats=90, history=False, offers=None,
-                buybox=True, wait=True,
-            )
-        except Exception as exc:
-            log.warning("UPC lookup failed for chunk starting at %d: %s", i, exc)
-            if _is_token_exhaustion(exc):
-                alerts.alert_keepa_exhausted(exc)
+        products = None
+        for attempt in range(2):  # one retry on transient network/timeout errors
+            try:
+                products = api.query(
+                    chunk, product_code_is_asin=False, stats=90, history=False, offers=None,
+                    buybox=True, wait=True,
+                )
                 break
+            except Exception as exc:
+                log.warning("UPC lookup failed for chunk starting at %d (attempt %d): %s", i, attempt + 1, exc)
+                if _is_token_exhaustion(exc):
+                    alerts.alert_keepa_exhausted(exc)
+                    products = None
+                    break
+                time.sleep(5)
+        if not products:
             continue
 
         for p in products:
