@@ -38,8 +38,10 @@ MEGA_BRANDS = {
     "johnson & johnson", "johnson and johnson", "band-aid", "tylenol", "advil",
     "purina", "hills science diet", "royal canin", "pedigree", "iams",
     "procter & gamble", "unilever", "3m", "scotch", "post-it",
+    "honda", "toyota", "ford", "chevrolet", "gm", "bmw", "mercedes", "audi",
+    "volkswagen", "hyundai", "kia", "subaru", "mazda", "nissan", "jeep",
     # Apparel & footwear — too large or category excluded
-    "dude", "dude perfect", "brooks", "brooks running", "skechers", "crocs", "vans",
+    "dude", "hey dude", "dude perfect", "brooks", "brooks running", "skechers", "crocs", "vans",
     "converse", "timberland", "ugg", "birkenstock", "dr. martens", "dr martens",
     "wolverine", "merrell", "hoka", "on running", "on", "salomon", "columbia",
     "the north face", "patagonia", "arc'teryx", "canada goose", "moncler",
