@@ -1,0 +1,63 @@
+name: Keyword Search Scan
+
+on:
+  push:
+    paths:
+      - "invoices/keyword_search_requests/**"
+
+permissions:
+  contents: write
+
+# Same reasoning as Invoice Scan / Deep-dive Scan — one run at a time per
+# branch so it doesn't race a concurrent scan for the same Keepa token
+# budget or collide on the git push.
+concurrency:
+  group: invoice-scan-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  keyword-search:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Write .env from secret
+        run: echo "KEEPA_API_KEY=${{ secrets.KEEPA_API_KEY }}" > .env
+
+      - name: Keyword-search new requests
+        run: |
+          mkdir -p invoices/keyword_search_results invoices/keyword_search_requests/.processed
+          shopt -s nullglob
+          for f in invoices/keyword_search_requests/*.csv; do
+            name=$(basename "$f" .csv)
+            echo "Keyword-searching $f"
+            python keyword_search_skus.py "$f" --csv-out "invoices/keyword_search_results/${name}_result.csv"
+            git mv "$f" "invoices/keyword_search_requests/.processed/$(basename "$f")"
+          done
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add invoices/keyword_search_results invoices/keyword_search_requests
+          git diff --staged --quiet || git commit -m "Keyword search scan results ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+          git pull --rebase origin "${{ github.ref_name }}"
+          git push
+
+      - name: Upload results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyword-search-results-${{ github.run_id }}
+          path: invoices/keyword_search_results
+          retention-days: 30
