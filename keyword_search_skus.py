@@ -205,7 +205,13 @@ def main():
             print(f"  pausing {wait_s:.0f}s to keep {config.KEEPA_TOKEN_RESERVE} tokens in reserve")
             time.sleep(wait_s)
         try:
-            products = api.query(chunk, stats=90, offers=20, history=False, buybox=True, wait=True)
+            # history=True is required here (unlike the UPC pipeline) --
+            # Amazon Present % is computed from csv[0] (Amazon price
+            # history), which Keepa omits entirely when history=False.
+            # Confirmed via the test batch: every match came back 0.0%
+            # even when Amazon held the buy box, which is the tell that
+            # csv data was simply missing, not that Amazon was truly absent.
+            products = api.query(chunk, stats=90, offers=20, history=True, buybox=True, wait=True)
         except Exception as exc:
             print(f"  stats query failed for chunk starting at {i}: {exc}")
             time.sleep(5)
