@@ -93,6 +93,13 @@ def _raw_product_finder(api: keepa.Keepa, selection: dict) -> tuple[list[str], s
     return data.get("asinList") or [], None
 
 
+# Keepa rejects a product_finder request outright ("combination of perPage
+# and page exceeds limit or is too small") if perPage is set too low —
+# 50 is the library's own default and the practical floor. Ask for that
+# many and just slice locally to the few we actually want.
+FINDER_PER_PAGE = 50
+
+
 def find_candidates(api: keepa.Keepa, title_query: str, n: int = 3) -> list[str]:
     if not title_query:
         return []
@@ -104,9 +111,9 @@ def find_candidates(api: keepa.Keepa, title_query: str, n: int = 3) -> list[str]
     # through the library, so fall back rather than losing the item.
     attempts = [
         {"title": title_query, "minMatch": {"title": min_match},
-         "sort": [["current_SALES", "asc"]], "perPage": n, "page": 0},
-        {"title": title_query, "sort": [["current_SALES", "asc"]], "perPage": n, "page": 0},
-        {"title": title_query, "perPage": n, "page": 0},
+         "sort": [["current_SALES", "asc"]], "perPage": FINDER_PER_PAGE, "page": 0},
+        {"title": title_query, "sort": [["current_SALES", "asc"]], "perPage": FINDER_PER_PAGE, "page": 0},
+        {"title": title_query, "perPage": FINDER_PER_PAGE, "page": 0},
     ]
     last_err = None
     for attempt in attempts:
@@ -165,6 +172,9 @@ def main():
         rows = list(csv.DictReader(f))
 
     api = keepa.Keepa(config.KEEPA_API_KEY, timeout=90.0)
+    api.update_status()
+    tokens_before = api.tokens_left
+    print(f"Tokens left before run: {tokens_before}")
 
     print(f"Searching {len(rows)} catalog items via Product Finder...")
     row_candidates: list[tuple[dict, str, list[str]]] = []
@@ -176,6 +186,11 @@ def main():
         all_asins.update(candidates)
         if (idx + 1) % 25 == 0:
             print(f"  searched {idx + 1}/{len(rows)}, {len(all_asins)} unique candidate ASINs so far")
+
+    api.update_status()
+    tokens_after_search = api.tokens_left
+    print(f"Tokens left after Product Finder phase: {tokens_after_search} "
+          f"(used {tokens_before - tokens_after_search} for {len(rows)} searches)")
 
     print(f"Total unique candidate ASINs to fetch stats for: {len(all_asins)}")
 
