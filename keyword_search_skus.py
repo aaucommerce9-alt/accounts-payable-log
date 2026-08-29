@@ -16,8 +16,11 @@ Two-phase design to keep cost predictable:
 """
 import argparse
 import csv
+import json
 import re
 import time
+
+import requests
 
 from swiftcart import config
 import keepa
@@ -66,24 +69,53 @@ def build_search_title(description: str, max_words: int = 6) -> str:
     return " ".join(words)
 
 
+def _raw_product_finder(api: keepa.Keepa, selection: dict) -> tuple[list[str], str | None]:
+    """Bypass the keepa library's product_finder() to get the actual error
+    body on a non-200 response — the library only surfaces a generic
+    status-code name (e.g. 'REQUEST_REJECTED'), not why."""
+    payload = {
+        "key": api.accesskey,
+        "domain": 1,  # US
+        "selection": json.dumps(selection),
+    }
+    try:
+        r = requests.get("https://api.keepa.com/query", params=payload, timeout=30)
+    except Exception as exc:
+        return [], f"network error: {exc}"
+    try:
+        data = r.json()
+    except Exception:
+        return [], f"non-JSON response (status {r.status_code}): {r.text[:300]}"
+    if "tokensLeft" in data:
+        api.tokens_left = data["tokensLeft"]
+    if r.status_code != 200:
+        return [], f"status {r.status_code}: {data.get('error') or data}"
+    return data.get("asinList") or [], None
+
+
 def find_candidates(api: keepa.Keepa, title_query: str, n: int = 3) -> list[str]:
     if not title_query:
         return []
     n_terms = len(title_query.split())
     min_match = max(1, min(3, n_terms - 1)) if n_terms > 1 else 1
-    params = {
-        "title": title_query,
-        "minMatch": {"title": min_match},
-        "sort": [["current_SALES", "asc"]],
-        "perPage": n,
-        "page": 0,
-    }
-    try:
-        result = api.product_finder(params)
-        return list(result or [])[:n]
-    except Exception as exc:
-        print(f"  product_finder failed for {title_query!r}: {exc}")
-        return []
+
+    # Try progressively simpler selections — some field combos Keepa's
+    # Product Finder rejects outright (400) without a helpful message
+    # through the library, so fall back rather than losing the item.
+    attempts = [
+        {"title": title_query, "minMatch": {"title": min_match},
+         "sort": [["current_SALES", "asc"]], "perPage": n, "page": 0},
+        {"title": title_query, "sort": [["current_SALES", "asc"]], "perPage": n, "page": 0},
+        {"title": title_query, "perPage": n, "page": 0},
+    ]
+    last_err = None
+    for attempt in attempts:
+        asins, err = _raw_product_finder(api, attempt)
+        if err is None:
+            return asins[:n]
+        last_err = err
+    print(f"  product_finder failed for {title_query!r}: {last_err}")
+    return []
 
 
 def parse_product(p: dict) -> dict:
