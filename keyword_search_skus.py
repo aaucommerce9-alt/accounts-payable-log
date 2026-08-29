@@ -69,28 +69,42 @@ def build_search_title(description: str, max_words: int = 6) -> str:
     return " ".join(words)
 
 
-def _raw_product_finder(api: keepa.Keepa, selection: dict) -> tuple[list[str], str | None]:
+def _raw_product_finder(api: keepa.Keepa, selection: dict, max_wait_retries: int = 3) -> tuple[list[str], str | None]:
     """Bypass the keepa library's product_finder() to get the actual error
     body on a non-200 response — the library only surfaces a generic
-    status-code name (e.g. 'REQUEST_REJECTED'), not why."""
+    status-code name (e.g. 'REQUEST_REJECTED'), not why.
+
+    A 429 here means the account is out of tokens (tokensConsumed: 0, so
+    the rejected call itself is free) -- the response includes refillIn
+    (ms until the next refill), which the keepa library's own wait=True
+    sleeps on for api.query(); this bypass needs the same behavior or it
+    just burns through the whole token deficit as instant failures.
+    """
     payload = {
         "key": api.accesskey,
         "domain": 1,  # US
         "selection": json.dumps(selection),
     }
-    try:
-        r = requests.get("https://api.keepa.com/query", params=payload, timeout=30)
-    except Exception as exc:
-        return [], f"network error: {exc}"
-    try:
-        data = r.json()
-    except Exception:
-        return [], f"non-JSON response (status {r.status_code}): {r.text[:300]}"
-    if "tokensLeft" in data:
-        api.tokens_left = data["tokensLeft"]
-    if r.status_code != 200:
+    for attempt in range(max_wait_retries + 1):
+        try:
+            r = requests.get("https://api.keepa.com/query", params=payload, timeout=30)
+        except Exception as exc:
+            return [], f"network error: {exc}"
+        try:
+            data = r.json()
+        except Exception:
+            return [], f"non-JSON response (status {r.status_code}): {r.text[:300]}"
+        if "tokensLeft" in data:
+            api.tokens_left = data["tokensLeft"]
+        if r.status_code == 200:
+            return data.get("asinList") or [], None
+        if r.status_code == 429 and attempt < max_wait_retries:
+            wait_s = max(1.0, data.get("refillIn", 60000) / 1000.0)
+            print(f"  out of tokens ({data.get('tokensLeft')}), waiting {wait_s:.0f}s for refill...")
+            time.sleep(wait_s)
+            continue
         return [], f"status {r.status_code}: {data.get('error') or data}"
-    return data.get("asinList") or [], None
+    return [], "exhausted wait retries"
 
 
 # Keepa rejects a product_finder request outright ("combination of perPage
