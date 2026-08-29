@@ -1,0 +1,19 @@
+UPC,ASIN,Description,Channel,Cost,Sell Price,Referral Fee,Fulfillment Fee,Profit/Unit,Margin %,ROI %,Units/mo,BSR,Amazon Buy Box,Verdict
+022400643168,B00FQRA3B8,Tresseme Mousse Extra Hold 10.5oz 248/pt 6/cs,FBM,0.9583,49.8,7.47,9.5,31.87,64.0,3325.9,0,66381,False,marginal
+025700003816,B002YX0RAE,Ziploc Freezer Quart Bags 38 bags 75/pt 9/cs,FBM,0.4444,53.17,7.98,15.5,29.25,55.0,6581.9,0,784096,False,marginal
+022400005218,B01IADX2X0,Tresseme Hair Spray Two hours Extra Hold 11oz 6/cs,FBM,0.9583,35.97,5.4,9.5,20.12,55.9,2099.2,0,1380249,False,marginal
+034000502349,B00BFARV9M,Twizzlers Rainbow Candy Straws 12.4oz Bag 80/pt 14/cs,FBM,0.0607,15.38,2.31,5.0,8.01,52.1,13199.8,0,333082,False,marginal
+022400640457,B00SD8K88A,Tresseme Freeze Hold Hair Spray 11oz 156/pt 6/cs,FBM,0.975,13.05,1.96,5.0,5.12,39.2,524.9,100,65101,False,buy
+025700003205,B000SRMDFA,Ziploc Storage Gallon 38ct 60/pt 9/cs,FBM,0.5389,9.5,1.43,5.0,2.54,26.7,470.6,0,68016,False,marginal
+8886467060854,B0BTJ11RN9,Vaseline Healthy Plus Bar Soap Healthy Bright with Vitamin B3 - Pack of 3 x 75g/2.64oz 66/pt 48/cs,FBM,0.0417,7.59,1.14,5.0,1.41,18.6,3380.8,300,46491,False,buy
+062338779409,B000VPBNJQ,Woolite Liquid Laundry Detergent Damage Defense 50 oz 48/pt 6/cs,FBM,1.4583,14.37,2.16,9.5,1.26,8.7,86.1,50,3637,True,skip
+025700711391,B00OD31IPG,Ziploc Sandwich Bags 40ct 12/cs,FBM,0.2042,7.45,1.12,5.0,1.13,15.1,552.5,100,103089,False,buy
+8886467060861,B0BW4PX1S1,"Vaseline Healthy Plus Bar Soap, Total Moisture, Soy Protein + Oat Extract Pack of 3 x 75g/2.64oz 66/pt 48/cs",FBM,0.0417,5.13,0.77,5.0,-0.68,-13.3,-1633.6,300,55762,False,skip
+076828046728,B005FQLOJK,Wet Ones Antibacterial Hand Wipes Tropical Splash 40ct 84/pt 12/cs,FBM,0.1875,6.49,0.97,7.0,-1.67,-25.7,-891.2,0,1029094,False,skip
+019800707651,B075NPQDTG,Windex Glass & More Multi-Surface Cleaner 32 oz 52/pt 8/cs,FBM,0.45,6.49,0.97,7.0,-1.93,-29.8,-429.7,100,32271,False,skip
+034000560431,B000WG8Z6I,Twizzler Pull N Peal Cherry 14oz Bag 48/pt 24/cs,FBM,0.0604,3.48,0.52,5.0,-2.1,-60.4,-3480.8,8000,1090,True,skip
+034000560233,B00IAE9HY8,Twizlers Cherry Bites 16oz 12/cs,FBM,0.1625,3.48,0.52,7.0,-4.2,-120.8,-2587.4,10000,1934,True,skip
+034000541508,B00CQQRIKG,Twizzlers (cherry bites) 5oz box 12/cs,FBM,0.075,0.0,0.3,5.0,-5.38,0.0,-7166.7,0,579398,False,skip
+025700003991,B003UEJ62Q,Ziploc Freezer Pint 20ct 12/cs,FBM,0.2917,0.0,0.3,5.0,-5.59,0.0,-1916.9,0,703673,False,skip
+059200707073,B084DKFS9C,Windex Nature's Source Natural Glass Surface Cleaner 765 ml 68/pt 8/cs,FBM,0.4375,0.0,0.3,5.0,-5.74,0.0,-1311.4,0,0,False,skip
+062338769745,B00IB199HU,Woolite Laundry Detergent - For All Darks Concentrated 50 oz 48/pt 6/cs,FBM,1.4583,0.0,0.3,9.5,-11.26,0.0,-772.0,2000,31408,False,skip
