@@ -39,6 +39,12 @@ def parse_product(p):
 
     category = (p.get("categoryTree") or [{}])[-1].get("name", "")
 
+    # Real barcode Amazon has on file for this ASIN -- not the same as any
+    # UPC passed in on the input CSV (which may be blank, e.g. for catalogs
+    # like AB/ACM that never had one to begin with).
+    codes = (p.get("upcList") or []) + (p.get("eanList") or [])
+    keepa_barcode = codes[0] if codes else ""
+
     # amazon present %: fraction of csv[0] (Amazon price history) with a real price
     try:
         csv_data = p.get("csv") or []
@@ -53,6 +59,7 @@ def parse_product(p):
         "monthly_sold": int(monthly_sold), "seller_count": seller_count,
         "amazon_is_buybox": amazon_is_buybox, "amazon_pct": amazon_pct,
         "category": category, "title": (p.get("title") or "").strip(),
+        "keepa_barcode": keepa_barcode,
     }
 
 
@@ -76,7 +83,7 @@ def main():
     with open(args.csv_out, "w", newline="") as f:
         w = csv.writer(f)
         w.writerow([
-            "ASIN", "UPC", "Description", "Cost", "Sell Price",
+            "ASIN", "UPC", "Keepa Barcode", "Description", "Cost", "Sell Price",
             "Seller Count", "Amazon Present %", "Amazon Is Buybox",
             "Monthly Sold (Keepa)", "BSR", "Category", "Title",
         ])
@@ -86,6 +93,7 @@ def main():
             w.writerow([
                 rec["asin"],
                 orig.get("UPC", ""),
+                rec["keepa_barcode"],
                 orig.get("Description", ""),
                 orig.get("Cost", ""),
                 rec["price_usd"],
