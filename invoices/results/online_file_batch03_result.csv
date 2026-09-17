@@ -1,0 +1,61 @@
+UPC,ASIN,Description,Channel,Cost,Sell Price,Referral Fee,Fulfillment Fee,Profit/Unit,Margin %,ROI %,Units/mo,BSR,Amazon Buy Box,Verdict
+037000124450,B01IA97EHO,Secret/Solid Stick/Shower Fresh/12/1.7/oz,FBA,1.49,31.36,4.7,6.02,18.65,59.5,937.0,0,524344,False,marginal
+309978695318,B07H9X4JVJ,Revlon ColorSilk/Hair Color/Dark Auburn #31/12/1/ct,FBA,2.3,30.53,4.58,5.61,17.54,57.5,626.4,0,872939,False,marginal
+309978695455,B01MG09QER,Revlon ColorSilk/Hair Color/Bright Auburn #45/12/1/ct,FBA,2.3,24.99,3.75,6.31,12.13,48.5,433.3,0,616311,False,marginal
+883484311189,B008L2TRR6,Pert Plus/Shampoo/2 in 1 Anti Dandruff/4/25.4/oz,FBA,4.8925,28.63,4.29,8.46,10.48,36.6,194.4,0,367803,False,marginal
+816559019482,B0D66XMDMW,Pert Plus/Shampoo/2 in 1 Scalp Relief Aloe Mint/4/25.4/oz,FBA,4.8925,25.57,3.84,6.02,10.32,40.4,191.4,0,172611,False,marginal
+079400499790,B0C4VRW9Q3,"Suave/Shampoo, Conditioner, Body Wash/Kids 3 in 1 Shea Butter Coconut Oil Princess Slaya Pump/4/28/oz",FBA,1.49,19.99,3.0,7.55,7.45,37.3,374.4,0,507012,False,marginal
+309976623498,B0039YQG8Y,Revlon ColorSilk/Hair Color/Auburn Brown #49/12/1/ct,FBA,2.3,17.49,2.62,5.61,6.46,36.9,230.6,0,7557,False,marginal
+030772064030,B0B95S8HVV,Head & Shoulders/Shampoo/Dry Scalp Care 2 in 1 WPump/4/28.2/oz,FBA,9.4475,26.05,3.91,6.13,6.07,23.3,61.0,50,277260,False,marginal
+819156022459,B0GHP2ZBP8,Hello/Deodorant Solid/Sage+Eucallyptus/12/2.6/oz,FBA,2.6192,13.9,2.08,4.09,4.61,33.1,147.7,0,346726,False,marginal
+080878195299,B09XVNRZB6,Pantene/Shampoo/Classic Clean 2 in 1 WPump/4/27.7/oz,FBA,7.49,20.99,3.15,5.28,4.57,21.8,57.2,0,181308,False,marginal
+037000124429,B01IAHYIWK,Secret/Solid Stick/Powder/12/1.7/oz,FBA,1.49,12.89,1.93,4.76,4.21,32.6,211.4,0,178428,False,marginal
+030772063521,B0C3F3ZJ4J,Head & Shoulders/Shampoo/Dry Scalp Care/4/20.7/oz,FBA,7.5625,20.24,3.04,5.76,3.38,16.7,41.9,0,574432,False,marginal
+012044063200,B0DSGGTQG6,Old Spice/Deodorant Spray/Total Body Aloe + Rain/12/3.5/oz,FBA,2.0825,12.75,1.91,4.93,3.33,26.1,128.8,300,6176,False,buy
+030772063569,B0C8VC6ZY1,Head & Shoulders/Shampoo/Classic Clean/4/20.7/oz,FBA,7.5625,20.01,3.0,5.76,3.19,15.9,39.5,0,404825,False,marginal
+030772063514,B0CDQ1NRJ6,Head & Shoulders/Shampoo/2 In 1 Green Apple/4/20.7/oz,FBA,7.5625,19.73,2.96,5.76,2.95,14.9,36.6,0,759483,False,marginal
+309978456377,B004JK4558,Revlon ColorSilk/Hair Color/Dark Golden Brown #37/12/1/ct,FBA,2.3,9.95,1.49,3.24,2.42,24.3,86.3,0,10346,False,marginal
+309978695424,B001B2QJZ6,Revlon ColorSilk/Hair Color/Medium Auburn #42/12/1/ct,FBA,2.3,9.95,1.49,3.5,2.16,21.7,77.1,0,417921,False,marginal
+309978695332,B0038TK262,Revlon ColorSilk/Hair Color/Dark Soft Brown #33/12/1/ct,FBA,2.3,8.95,1.34,3.24,1.57,17.5,56.0,0,10350,False,marginal
+037000449836,B000PIPVT2,Crest/Pro-Health Multiprotection Mouthwash/Clean Mint/4/1.5/lt,FBA,7.5375,19.98,3.0,7.38,1.57,7.8,19.5,0,496707,False,marginal
+080878195244,B0DHW4LTLP,Pantene/Shampoo/Daily Moisture Renewal 2 in 1 WPump/4/27.7/oz,FBA,7.49,17.27,2.59,5.28,1.41,8.2,17.6,0,208889,False,marginal
+067990500477,B001KYSA5W,Finesse/Shampoo/Normal/6/24/oz,FBA,3.355,12.86,1.93,5.76,1.32,10.2,34.1,200,76750,True,skip
+816559018782,B007TXD6OS,VO5/Shampoo/Ocean Refresh Revitalizing/6/15/oz,FBA,1.4417,8.98,1.35,4.37,1.32,14.7,68.0,50,179940,False,marginal
+883484708903,B00I5MUW8A,Pert Plus/Shampoo/2 in 1 Classic Clean/4/25.4/oz,FBA,4.8925,16.56,2.48,7.46,1.22,7.4,22.7,0,264000,False,marginal
+309976623054,B0039404TG,Revlon ColorSilk/Hair Color/Ultra Light Ash Blonde #5/12/1/ct,FBA,2.3,8.45,1.27,3.24,1.14,13.5,40.8,0,10344,False,marginal
+030772063576,B0CFFYHM9Y,Head & Shoulders/Shampoo/2 In 1 Classic Clean/4/20.7/oz,FBA,7.5625,17.51,2.63,5.76,1.06,6.1,13.2,0,350168,False,marginal
+309977326046,B00B40O6W8,Revlon ColorSilk/Hair Color/Ultra Light Natural Blonde #4/12/1/ct,FBA,2.3,11.21,1.68,5.76,0.97,8.6,34.6,0,659166,False,marginal
+030772126080,B0CJBQBGC3,Secret/Spray/Whole Body Peach Vanilla/12/3.5/oz,FBA,3.135,9.99,1.5,4.08,0.78,7.8,21.4,6000,2452,False,marginal
+309978695417,B001B2S32S,Revlon Color Silk/Hair Color/Medium Brown #41/12/1/ct,FBA,2.3,7.98,1.2,3.24,0.74,9.3,26.5,0,10378,False,marginal
+309978695400,B0046VEACI,Revlon ColorSilk/Hair Color/Mahogany Brown #40/12/1/ct,FBA,2.3,7.24,1.09,3.24,0.11,1.6,4.1,0,7557,False,marginal
+816559017914,B0CX24VJXL,VO5/Shampoo/Normal Daily Revitalizing/6/15/oz,FBA,1.4417,7.52,1.13,4.37,0.08,1.1,4.1,0,204377,False,marginal
+309978695509,B000OVBHUW,Revlon ColorSilk/Hair Color/Light Ash Brown #50/12/1/ct,FBA,2.3,7.0,1.05,3.24,-0.09,-1.3,-3.2,0,282349,False,skip
+816559019840,B0CX27YVRN,VO5/Shampoo/Pomegranate Bliss Moisturizing/6/15/oz,FBA,1.4417,7.14,1.07,4.37,-0.24,-3.4,-12.5,800,69372,False,skip
+012044058961,B0CJBNFHYH,Old Spice/Deodorant Spray/Gentlemans Total Body Cucumber + Avocado/12/3.5/oz,FBA,2.0825,7.5,1.12,4.08,-0.29,-3.8,-11.1,300,6176,False,skip
+816559011431,B00EUXLMUK,VO5/Shampoo/Silky Experiences Island Coconut Moisturizing/6/15/oz,FBA,1.4417,6.88,1.03,4.37,-0.46,-6.7,-23.9,200,72109,True,skip
+816559010984,B000052Y2X,VO5/Conditioner/Extra Body Volumizing/6/15/oz,FBA,1.4417,7.27,1.09,4.92,-0.68,-9.4,-35.1,0,77391,False,skip
+816559011172,B00CHL3KN4,VO5/Shampoo/Strawberries & Cream Moisturizing/6/15/oz,FBA,1.4417,6.6,0.99,4.37,-0.7,-10.6,-36.1,200,55132,False,skip
+030772062807,B0B96JCQK4,Head & Shoulders/Shampoo/Classic Clean 2 in 1/6/12.5/oz,FBA,5.2383,11.5,1.73,4.76,-0.72,-6.3,-12.6,50,332616,False,skip
+816559019857,B0CM6NYWTT,VO5/Conditioner/Pomegranate Bliss Moisturizing/6/15/oz,FBA,1.4417,5.08,0.76,3.24,-0.86,-17.0,-44.5,50,132164,False,skip
+816559015149,B07KYWR8LV,VO5/Shampoo/Men 3 in 1 Ocean Surge/6/15/oz,FBA,1.4417,6.36,0.95,4.37,-0.91,-14.2,-46.6,200,75991,True,skip
+309978456278,B004JK6BXC,Revlon ColorSilk/Hair Color/Deep Rich Brown #27/12/1/ct,FBA,2.3,5.95,0.89,3.24,-0.98,-16.5,-35.1,0,10350,False,skip
+816559015156,B07KYWP4Q9,VO5/Shampoo/Men 3 in 1 Fresh Energy/6/15/oz,FBA,1.4417,6.21,0.93,4.37,-1.03,-16.6,-53.2,50,75984,False,skip
+816559019765,B0CW2169WJ,VO5/Shampoo/2 in 1 Moisturizing/6/15/oz,FBA,1.4417,6.1,0.92,4.37,-1.13,-18.5,-58.0,100,67211,True,skip
+030772063194,B0B95VKB8G,Head & Shoulders/Shampoo/Smooth and Silky 2 in 1/6/12.5/oz,FBA,5.2383,10.99,1.65,4.76,-1.16,-10.5,-20.2,100,102061,False,skip
+816559019789,B0CDQ4NMBX,VO5/Conditioner/Blooming Freesia Moisturizing/6/15/oz,FBA,1.4417,5.45,0.82,3.91,-1.22,-22.4,-62.8,50,134716,True,skip
+816559019642,B0CWS8F3SY,VO5/Conditioner/Jojoba Aloe Cleansing/6/15/oz,FBA,1.4417,5.55,0.83,4.37,-1.59,-28.7,-82.1,400,41494,False,skip
+816559011066,B000V9M8B4,VO5/Shampoo/Kiwi Lime Squeeze Clarifying/6/15/oz,FBA,1.4417,5.5,0.82,4.37,-1.64,-29.8,-84.3,400,27224,False,skip
+067990500507,B000GCT1CU,Finesse/Conditioner/Normal/6/24/oz,FBA,3.355,7.25,1.09,4.92,-2.61,-36.0,-67.8,300,44441,True,skip
+816559019772,B0D1YNCZ1J,VO5/Shampoo/Blooming Freesia Moisturizing/6/15/oz,FBA,1.4417,3.76,0.56,4.37,-3.12,-82.9,-160.5,300,32105,False,skip
+816559018775,B0CX23C241,VO5/Conditioner/Normal Daily Revitalizing/6/15/oz,FBA,1.4417,3.45,0.52,4.37,-3.38,-97.9,-174.0,0,244989,False,skip
+080878195268,B0DHWCW53K,Pantene/Shampoo/Smooth & Sleek wPump/4/27.7/oz,FBA,7.49,9.97,1.5,5.28,-4.8,-48.1,-60.0,1000,295,True,skip
+080878195275,B0DHWH8TJX,Pantene/Shampoo/Volume & Body wPump/4/27.7/oz,FBA,7.49,9.97,1.5,5.28,-4.8,-48.1,-60.0,10000,295,True,skip
+080878195312,B0DJF5TK4C,Pantene/Shampoo/Repair and Protect W-Pump/4/27.7/oz,FBA,7.49,9.96,1.49,5.28,-4.8,-48.2,-60.1,1000,295,True,skip
+080878195251,B09XVP8Z66,Pantene/Shampoo/Daily Moisture Renewal WPump/4/27.7/oz,FBA,7.49,9.97,1.5,5.28,-4.8,-48.1,-60.0,9000,295,True,skip
+816559011448,B0HC495K9N,VO5/Conditioner/Silky Experiences Island Coconut Moisturizing/6/15/oz,FBA,1.4417,0.0,0.3,3.5,-5.74,0.0,-295.7,0,0,False,skip
+079400488787,B0C4VLJNZ5,Suave/Shampoo/Silk Protein Infusion/6/12.6/oz,FBA,1.3567,0.0,0.3,4.35,-6.51,0.0,-350.4,0,0,False,skip
+827854020431,B0D9WVMTJP,Teen Spirit/Deodorant Solid/Fresh Zing/12/1.1/oz,FBA,0.7258,0.0,0.3,6.29,-7.82,0.0,-637.6,0,0,False,skip
+017000156415,B01N1LV021,Schwarzkopf/Gliss Hair Repair Treatment/Ultra Moisture Anti Breakage/6/6.1/oz,FBA,1.8417,0.0,0.3,5.22,-7.86,0.0,-335.7,0,0,False,skip
+022200940238,B01DLK4QUU,Mennen Speed Stick//Ocean Surf/12/1.8/oz,FBA,1.09,0.0,0.3,6.31,-8.2,0.0,-515.7,0,0,False,skip
+037000956631,B09C922CGV,Crest Scope/Mouthwash/Classic Original Mint/4/1.5/lt,FBA,7.3175,0.0,0.3,3.5,-11.62,0.0,-148.6,0,0,False,skip
+030772063538,B0CDQ4DWCC,Head & Shoulders/Shampoo/2 In 1 Dry Scalp Care/4/20.7/oz,FBA,7.5625,0.0,0.3,4.92,-13.28,0.0,-164.7,0,1287448,False,skip
